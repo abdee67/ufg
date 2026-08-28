@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:otp_text_field/otp_text_field.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
@@ -38,7 +37,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       (bloc) => bloc.state is AuthLoading,
     );
     return Scaffold(
-      backgroundColor: AppColors.paper,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is PasswordResetOtpVerified) {
@@ -67,7 +66,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         onPressed: () =>
                             context.go(AppRoutes.forgotPasswordScreen),
                         icon: const Icon(Icons.arrow_back_rounded),
-                        color: AppColors.ink,
+                        color: Theme.of(context).colorScheme.primary,
                         tooltip: 'Back',
                       ),
                       const SizedBox(height: 20),
@@ -86,7 +85,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           _isOtpVerified
                               ? Icons.lock_reset_rounded
                               : Icons.mark_email_read_outlined,
-                          color: AppColors.clay,
+                          color: Theme.of(context).colorScheme.primary,
                           size: 31,
                         ),
                       ),
@@ -95,8 +94,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         _isOtpVerified
                             ? 'Create a new\npassword'
                             : 'Check your\nemail',
-                        style: const TextStyle(
-                          color: AppColors.ink,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                           fontSize: 36,
                           height: 1.08,
                           fontWeight: FontWeight.w800,
@@ -107,8 +106,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         _isOtpVerified
                             ? 'Choose a strong password that you do not use elsewhere.'
                             : 'We sent a 6-digit verification code to ${widget.email}.',
-                        style: const TextStyle(
-                          color: AppColors.muted,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                           fontSize: 16,
                           height: 1.5,
                         ),
@@ -124,10 +123,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 : () => context.go(
                                     AppRoutes.forgotPasswordScreen,
                                   ),
-                            child: const Text(
+                            child: Text(
                               'Use a different email address',
                               style: TextStyle(
-                                color: AppColors.clay,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -163,10 +162,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!_isOtpVerified) ...[
-            const Text(
+            Text(
               'Verification code',
               style: TextStyle(
-                color: AppColors.ink,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
@@ -177,17 +176,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               width: MediaQuery.sizeOf(context).width - 96,
               textFieldAlignment: MainAxisAlignment.spaceBetween,
               fieldWidth: 42,
-              style: const TextStyle(
-                color: AppColors.ink,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
               onCompleted: (code) => _otp = code,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'The code expires shortly for your security.',
-              style: TextStyle(color: AppColors.muted, fontSize: 13),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                fontSize: 13,
+              ),
             ),
           ] else ...[
             _passwordField(
@@ -215,9 +217,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             child: ElevatedButton(
               onPressed: isLoading ? null : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.clay,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: AppColors.rose,
+                disabledBackgroundColor: Theme.of(context).colorScheme.secondary,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
@@ -260,10 +262,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           : const [AutofillHints.newPassword],
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppColors.muted),
-        prefixIcon: const Icon(
+        labelStyle: TextStyle(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+        prefixIcon: Icon(
           Icons.lock_outline_rounded,
-          color: AppColors.clay,
+          color: Theme.of(context).colorScheme.primary,
         ),
         suffixIcon: IconButton(
           onPressed: onVisibilityChanged,
@@ -271,14 +275,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             obscureText
                 ? Icons.visibility_off_outlined
                 : Icons.visibility_outlined,
-            color: AppColors.muted,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
         filled: true,
-        fillColor: AppColors.field,
+        fillColor: Theme.of(context).colorScheme.secondary,
         border: _fieldBorder(),
         enabledBorder: _fieldBorder(),
-        focusedBorder: _fieldBorder(color: AppColors.clay),
+        focusedBorder: _fieldBorder(color: Theme.of(context).colorScheme.primary),
       ),
     );
   }
@@ -322,7 +326,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? const Color(0xFF9B3A32) : AppColors.clay,
+        backgroundColor: isError ? const Color(0xFF9B3A32) : Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
       ),
     );

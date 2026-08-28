@@ -1,5 +1,3 @@
-import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
-
 abstract class AuthEvent {}
 
 class SignInRequested extends AuthEvent {
@@ -12,18 +10,14 @@ class SignInRequested extends AuthEvent {
 class SignUpRequested extends AuthEvent {
   final String email;
   final String password;
-  final String firstName;
-  final String lastName;
+  final String fullName;
   final String phone;
-  final CustomerAddressInput address;
 
   SignUpRequested({
     required this.email,
     required this.password,
-    required this.firstName,
-    required this.lastName,
+    required this.fullName,
     required this.phone,
-    required this.address,
   });
 }
 

@@ -154,7 +154,6 @@ class _GreetingHeaderState extends State<GreetingHeader>
                             ),
                             child: IconButton(
                               onPressed: () {
-                                context.read<HomeBloc>().add(LoadHomeData());
                               },
                               icon: const Icon(
                                 Icons.refresh_rounded,

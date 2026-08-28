@@ -1,4 +1,5 @@
-part of 'home_bloc.dart';
+
+import 'package:equatable/equatable.dart';
 
 abstract class HomeState extends Equatable {
   const HomeState();
@@ -12,18 +13,11 @@ class HomeInitial extends HomeState {}
 class HomeLoading extends HomeState {}
 
 class HomeLoadSuccess extends HomeState {
-  final List<Stylist> stylists;
-  final List<Deal> deals;
-  final List<ServiceCategories> services;
 
-  const HomeLoadSuccess({
-    required this.stylists,
-    required this.deals,
-    required this.services,
-  });
+  const HomeLoadSuccess();
 
   @override
-  List<Object> get props => [stylists, deals, services];
+  List<Object> get props => [];
 }
 
 class HomeLoadFailure extends HomeState {

@@ -7,14 +7,14 @@ class SessionCheckingSplash extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.sage,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       body: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.sage, Colors.purple[100]!],
+            colors: [Theme.of(context).colorScheme.secondary, Colors.purple[100]!],
           ),
         ),
         child: SafeArea(

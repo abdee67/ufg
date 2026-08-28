@@ -10,11 +10,9 @@ class SignUp {
   Future<Either<Failures, void>> call(
     String email,
     String password,
-    String firstName,
-    String lastName,
+    String fullName,
     String phone,
-    CustomerAddressInput address,
   ) {
-    return repo.signUp(email, password, firstName, lastName, phone, address);
+    return repo.signUp(email, password, fullName, phone);
   }
 }

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ufg/core/constants/app_button_styles.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
@@ -41,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.paper,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
@@ -64,11 +62,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const _LogoLockup(),
                     const SizedBox(height: 58),
-                    const Text('Welcome\nback', style: _headingStyle),
+                    Text(
+                      'Welcome\nback',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: AppSizes.headingSize,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Sign in to continue your beauty journey.',
-                      style: TextStyle(color: AppColors.muted, fontSize: 16),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 36),
                     _AuthCard(
@@ -102,10 +110,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: TextButton(
                               onPressed: () =>
                                   context.go(AppRoutes.forgotPasswordScreen),
-                              child: const Text(
+                              child: Text(
                                 'Forgot password?',
                                 style: TextStyle(
-                                  color: AppColors.clay,
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -116,7 +124,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: AppSizes.buttonHeight,
                             child: ElevatedButton(
                               onPressed: state is AuthLoading ? null : _login,
-                              style: AppButtonStyles.primary,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: Theme.of(context).colorScheme.primary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
                               child: state is AuthLoading
                                   ? const _Loader()
                                   : const Text('Sign in', style: _buttonText),
@@ -129,10 +145,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     Center(
                       child: TextButton(
                         onPressed: () => context.go(AppRoutes.signupScreen),
-                        child: const Text(
+                        child:  Text(
                           'New to URS Beauty?  Create an account',
                           style: TextStyle(
-                            color: AppColors.clay,
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -163,18 +179,12 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: error ? AppColors.error : AppColors.clay,
+          backgroundColor: error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
           behavior: SnackBarBehavior.floating,
         ),
       );
 }
 
-const _headingStyle = TextStyle(
-  color: AppColors.ink,
-  fontSize: AppSizes.headingSize,
-  height: 1.08,
-  fontWeight: FontWeight.w800,
-);
 const _buttonText = TextStyle(fontWeight: FontWeight.w700, fontSize: 16);
 
 class _AuthBackdrop extends StatelessWidget {
@@ -183,8 +193,8 @@ class _AuthBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Stack(
     children: [
-      Positioned(top: -110, right: -100, child: _circle(AppColors.peach, 285)),
-      Positioned(bottom: -135, left: -90, child: _circle(AppColors.blush, 265)),
+      Positioned(top: -110, right: -100, child: _circle(Theme.of(context).colorScheme.primary, 285)),
+      Positioned(bottom: -135, left: -90, child: _circle(Theme.of(context).colorScheme.primary, 265)),
       child,
     ],
   );
@@ -214,10 +224,10 @@ class _LogoLockup extends StatelessWidget {
         child: Image.asset('assets/images/logo.png'),
       ),
       const SizedBox(width: 12),
-      const Text(
+      Text(
         'URS Beauty',
         style: TextStyle(
-          color: AppColors.ink,
+          color: Theme.of(context).colorScheme.primary,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),
@@ -235,7 +245,7 @@ class _AuthCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white.withValues(alpha: .93),
       borderRadius: BorderRadius.circular(AppSizes.pageRadius),
-      border: Border.all(color: AppColors.border),
+      border: Border.all(color: Theme.of(context).colorScheme.primary),
       boxShadow: const [
         BoxShadow(
           color: Color(0x14000000),
@@ -255,20 +265,21 @@ Widget _input({
   TextInputType? keyboardType,
   bool obscureText = false,
   Widget? suffix,
+   context,
 }) => TextField(
   controller: controller,
   keyboardType: keyboardType,
   obscureText: obscureText,
   decoration: InputDecoration(
     labelText: label,
-    labelStyle: const TextStyle(color: AppColors.muted),
-    prefixIcon: Icon(icon, color: AppColors.clay),
+    labelStyle:  TextStyle(color: Theme.of(context).colorScheme.primary),
+    prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
     suffixIcon: suffix,
     filled: true,
-    fillColor: AppColors.field,
+    fillColor: Theme.of(context).colorScheme.surface,
     border: _border(),
     enabledBorder: _border(),
-    focusedBorder: _border(AppColors.clay),
+    focusedBorder: _border(Theme.of(context).colorScheme.primary),
   ),
 );
 OutlineInputBorder _border([Color color = Colors.transparent]) =>

@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_routes.dart';
-import 'package:ufg/features/beauty_services/domain/entities/service_category_entity.dart';
-import 'package:ufg/features/beauty_services/presentation/screens/service_list_screen.dart';
-import 'package:ufg/features/deals/presentation/widgets/delas_banner.dart';
-import 'package:ufg/features/home/presentation/bloc/home_bloc.dart';
-import 'package:ufg/features/home/presentation/widgets/service_carousel.dart';
-import 'package:ufg/features/stylists/domain/entities/stylist_entity.dart';
-import 'package:ufg/features/stylists/presentation/pages/stylist_profile_screen.dart';
-import 'package:ufg/features/stylists/presentation/widgets/stylists_widget.dart';
+import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +14,7 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late AuthBloc authBloc;
 
   @override
   void initState() {
@@ -36,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
     Future.microtask(_refreshHomeData);
     _animationController.forward();
-  }
+    }
 
   @override
   void dispose() {
@@ -46,22 +38,20 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _refreshHomeData() async {
     if (!mounted) return;
-    context.read<HomeBloc>().add(LoadHomeData());
+    //context.read<HomeBloc>().add(LoadHomeData());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.paper,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         bottom: false,
         child: Stack(
           children: [
             // Scrollable Content
-            BlocBuilder<HomeBloc, HomeState>(
-              builder: (context, state) {
-                return RefreshIndicator(
-                  color: AppColors.clay,
+                 RefreshIndicator(
+                  color: Theme.of(context).colorScheme.secondary,
                   backgroundColor: Colors.white,
                   onRefresh: _refreshHomeData,
                   child: AnimatedBuilder(
@@ -91,31 +81,8 @@ class _HomeScreenState extends State<HomeScreen>
                                         context.push(AppRoutes.searchScreen),
                                   ),
                                   const SizedBox(height: 24),
-                                  if (state is HomeLoading) ...[
+                                  
                                     const _ModernLoadingSection(),
-                                  ] else if (state is HomeLoadFailure) ...[
-                                    _ErrorSection(
-                                      message: state.message,
-                                      onRetry: _refreshHomeData,
-                                    ),
-                                  ] else if (state is HomeLoadSuccess) ...[
-                                    PromotionsBanner(deals: state.deals),
-                                    if (state.deals.isNotEmpty)
-                                      const SizedBox(height: 28),
-                                    ServicesCarousel(
-                                      services: state.services,
-                                      onServiceTap: _openCategoryServices,
-                                      onViewAll: _openAllServices,
-                                    ),
-                                    const SizedBox(height: 28),
-                                    StylistsWidget(
-                                      stylists: state.stylists,
-                                      onStylistTap: _openStylistProfile,
-                                    ),
-                                    const SizedBox(height: 32),
-                                  ] else ...[
-                                    const _ModernLoadingSection(),
-                                  ],
                                 ]),
                               ),
                             ),
@@ -124,9 +91,7 @@ class _HomeScreenState extends State<HomeScreen>
                       );
                     },
                   ),
-                );
-              },
-            ),
+                ),
             // Sticky Header
             Positioned(
               top: 0,
@@ -138,13 +103,13 @@ class _HomeScreenState extends State<HomeScreen>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      AppColors.paper.withValues(alpha: 0.98),
-                      AppColors.paper.withValues(alpha: 0.95),
+                      Theme.of(context).colorScheme.surface,
+                      Theme.of(context).colorScheme.surface,
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.clay.withValues(alpha: 0.05),
+                      color: Theme.of(context).colorScheme.surface,
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -162,30 +127,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void _openAllServices() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const ServiceListScreen()));
-  }
-
-  void _openCategoryServices(ServiceCategories category) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ServiceListScreen(
-          categoryId: category.id,
-          categoryName: category.name,
-        ),
-      ),
-    );
-  }
-
-  void _openStylistProfile(Stylist stylist) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => StylistProfileScreen(stylist: stylist),
-      ),
-    );
-  }
 }
 
 class _StickyHeader extends StatefulWidget {
@@ -236,7 +177,7 @@ class _StickyHeaderState extends State<_StickyHeader>
                   Text(
                     'URS Beauty',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.ink,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
                       letterSpacing: -0.5,
@@ -252,9 +193,9 @@ class _StickyHeaderState extends State<_StickyHeader>
                             onPressed: () {
                               // Navigate to notifications
                             },
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.notifications_outlined,
-                              color: AppColors.clay,
+                              color: Theme.of(context).colorScheme.onSecondary,
                               size: 22,
                             ),
                             splashRadius: 20,
@@ -266,7 +207,7 @@ class _StickyHeaderState extends State<_StickyHeader>
                               width: 8,
                               height: 8,
                               decoration: BoxDecoration(
-                                color: AppColors.sage,
+                                color: Theme.of(context).colorScheme.onSecondary,
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: Colors.white,
@@ -281,11 +222,10 @@ class _StickyHeaderState extends State<_StickyHeader>
                       // Settings
                       IconButton(
                         onPressed: () {
-                          context.read<HomeBloc>().add(LoadHomeData());
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.settings_outlined,
-                          color: AppColors.clay,
+                          color: Theme.of(context).colorScheme.onSecondary,
                         ),
                         splashRadius: 20,
                       ),
@@ -297,12 +237,12 @@ class _StickyHeaderState extends State<_StickyHeader>
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(_getTimeIcon(), color: AppColors.sage, size: 18),
+                  Icon(_getTimeIcon(), color: Theme.of(context).colorScheme.onSecondary, size: 18),
                   const SizedBox(width: 6),
                   Text(
                     'Good ${_getTimeGreeting()}',
-                    style: const TextStyle(
-                      color: AppColors.ink,
+                    style:  TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -342,7 +282,7 @@ class _SearchBar extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
-      shadowColor: AppColors.clay.withValues(alpha: 0.08),
+      shadowColor: Theme.of(context).colorScheme.onSecondary.withValues(alpha: 0.08),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -357,12 +297,12 @@ class _SearchBar extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.clay.withValues(alpha: 0.08),
+                  color: Theme.of(context).colorScheme.onSecondary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child:  Icon(
                   Icons.search_rounded,
-                  color: AppColors.clay,
+                  color: Theme.of(context).colorScheme.onSecondary,
                   size: 20,
                 ),
               ),
@@ -371,7 +311,7 @@ class _SearchBar extends StatelessWidget {
                 child: Text(
                   'Search services or stylists...',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.muted,
+                    color: Theme.of(context).colorScheme.onSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -382,21 +322,21 @@ class _SearchBar extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.sage.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.onSecondary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.sage.withValues(alpha: 0.2),
+                    color: Theme.of(context).colorScheme.onSecondary.withValues(alpha: 0.2),
                   ),
                 ),
-                child: const Row(
+                child:  Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.tune_rounded, color: AppColors.sage, size: 16),
+                    Icon(Icons.tune_rounded, color: Theme.of(context).colorScheme.onSecondary, size: 16),
                     SizedBox(width: 4),
                     Text(
                       'Filters',
                       style: TextStyle(
-                        color: AppColors.sage,
+                        color: Theme.of(context).colorScheme.onSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -427,14 +367,14 @@ class _ModernLoadingSection extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: AppColors.clay.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.onSecondary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Padding(
+                child:  Padding(
                   padding: EdgeInsets.all(16),
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.clay),
+                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onSecondary),
                   ),
                 ),
               ),
@@ -442,7 +382,7 @@ class _ModernLoadingSection extends StatelessWidget {
               Text(
                 'Loading amazing services...',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.muted,
+                  color: Theme.of(context).colorScheme.onSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -542,7 +482,7 @@ class _ErrorSection extends StatelessWidget {
         border: Border.all(color: const Color(0xFFF0D8CA)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.clay.withValues(alpha: 0.08),
+            color: Theme.of(context).colorScheme.onSecondary.withValues(alpha: 0.08),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -554,12 +494,12 @@ class _ErrorSection extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.clay.withValues(alpha: 0.1),
+              color: Theme.of(context).colorScheme.onSecondary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(24),
             ),
-            child: const Icon(
+            child:  Icon(
               Icons.wifi_off_rounded,
-              color: AppColors.clay,
+              color: Theme.of(context).colorScheme.onSecondary,
               size: 40,
             ),
           ),
@@ -567,7 +507,7 @@ class _ErrorSection extends StatelessWidget {
           Text(
             'Connection Error',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColors.muted,
+              color: Theme.of(context).colorScheme.onSecondary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -576,7 +516,7 @@ class _ErrorSection extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.muted,
+              color: Theme.of(context).colorScheme.onSecondary,
               height: 1.5,
             ),
           ),
@@ -591,7 +531,7 @@ class _ErrorSection extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.clay,
+                backgroundColor: Theme.of(context).colorScheme.onSecondary,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),

@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -28,7 +27,9 @@ class CustomBottomNavBar extends StatelessWidget {
         // A deep ambient shadow underneath the glass layer
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.15),
+            color: Theme.of(context).colorScheme.secondary.withValues(
+              alpha: 0.15,
+            ),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -44,7 +45,7 @@ class CustomBottomNavBar extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.black.withValues(
+                  color: Theme.of(context).colorScheme.secondary.withValues(
                     alpha: 0.65,
                   ), // Richer translucent black
                   borderRadius: BorderRadius.circular(40),
@@ -127,7 +128,7 @@ class CustomBottomNavBar extends StatelessWidget {
               child: Icon(
                 isSelected ? activeIcon : inactiveIcon,
                 key: ValueKey<bool>(isSelected),
-                color: isSelected ? AppColors.surface : Colors.white54,
+                color: isSelected ? Colors.black : Colors.white54,
                 size: isSelected ? 28 : 24, // Subtle scale bounce
               ),
             ),
@@ -137,7 +138,7 @@ class CustomBottomNavBar extends StatelessWidget {
               curve: Curves.easeOutQuint,
               style: TextStyle(
                 color: isSelected
-                    ? AppColors.surface
+                    ? Colors.black
                     : Colors.transparent, // Hides text cleanly when inactive
                 fontSize: isSelected ? 10 : 8,
                 fontWeight: FontWeight.w600,
@@ -163,7 +164,7 @@ class CustomBottomNavBar extends StatelessWidget {
         height: 64, // Larger, more prominent touch target
         width: 64,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.clay : AppColors.sage,
+          color: isSelected ? Colors.black : Colors.white54,
           shape: BoxShape.circle,
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.2),
@@ -171,7 +172,7 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: (isSelected ? AppColors.clay : AppColors.sage).withValues(
+              color: (isSelected ? Colors.black : Colors.white54).withValues(
                 alpha: 0.4,
               ),
               blurRadius: 16,
@@ -182,7 +183,7 @@ class CustomBottomNavBar extends StatelessWidget {
         ),
         child: Icon(
           Icons.calendar_month_rounded,
-          color: isSelected ? Colors.white : AppColors.surface,
+          color: isSelected ? Colors.white : Colors.black,
           size: 30,
         ),
       ),

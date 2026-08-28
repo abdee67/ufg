@@ -9,10 +9,8 @@ abstract class AuthRepository {
   Future<Either<Failures, void>> signUp(
     String email,
     String password,
-    String firstName,
-    String lastName,
+    String fullName,
     String phone,
-    CustomerAddressInput address,
   );
   Future<Either<Failures, Session>> signIn(String email, String password);
   Future<Either<Failures, void>> sendOtp(String email);
@@ -21,16 +19,18 @@ abstract class AuthRepository {
     String email,
     String otp,
   );
-  Future<Either<Failures, CustomerEntity>> getCurrentCustomer();
+  Future<Either<Failures, void>> resetPassword(String email, String password);
+  Future<Either<Failures, void>> forgotPassword(String email);
+  Future<Either<Failures, String>> checkStartupSession();
   Future<Either<Failures, void>> signOut();
+
+  /*  Future<Either<Failures, CustomerEntity>> getCurrentCustomer();
   Future<Either<Failures, CustomerEntity>> updateCustomerProfile(
     CustomerEntity client,
   );
-  Future<Either<Failures, void>> resetPassword(String email, String password);
-  Future<Either<Failures, void>> forgotPassword(String email);
+
   Future<Either<Failures, CustomerAddressInput>> getCurrentLocationAddress();
   Future<Either<Failures, CustomerAddressEntity>> createCustomerAddress(
     CustomerAddressInput input,
-  );
-  Future<Either<Failures, String>> checkStartupSession();
+  );*/
 }

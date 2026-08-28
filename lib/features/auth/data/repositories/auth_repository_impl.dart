@@ -2,18 +2,12 @@ import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ufg/core/errors/failures.dart';
 import 'package:ufg/core/errors/failures/auth_failures.dart';
-import 'package:ufg/features/auth/data/datasources/auth_location_data_source.dart';
 import 'package:ufg/features/auth/data/datasources/auth_data_source.dart';
-import 'package:ufg/features/auth/data/models/customer_model.dart';
-import 'package:ufg/features/auth/data/models/customer_address_model.dart';
-import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
-import 'package:ufg/features/auth/domain/entities/customer_entity.dart';
 import 'package:ufg/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDataSource remoteDataSource;
-  final AuthLocationDataSource locationDataSource;
-  AuthRepositoryImpl(this.remoteDataSource, this.locationDataSource);
+  final AuthDataSource remoteDataSource;
+  AuthRepositoryImpl(this.remoteDataSource);
   @override
   Future<Either<Failures, Session>> signIn(
     String email,
@@ -30,19 +24,15 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failures, void>> signUp(
     String email,
     String password,
-    String firstName,
-    String lastName,
+    String fullName,
     String phone,
-    CustomerAddressInput address,
   ) async {
     return authRepositoryGuard(() async {
       final signup = await remoteDataSource.signUp(
         email,
         password,
-        firstName,
-        lastName,
+        fullName,
         phone,
-        address,
       );
       return signup;
     });
@@ -81,6 +71,35 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
+  
+  @override
+  Future<Either<Failures, String>> checkStartupSession() async {
+    return authRepositoryGuard(() async {
+      final status = await remoteDataSource.checkStartupSession();
+      return status;
+    });
+  }
+
+    @override
+  Future<Either<Failures, void>> forgotPassword(String email) async {
+    return authRepositoryGuard(() async {
+      final forgotPassword = await remoteDataSource.forgotPassword(email);
+      return forgotPassword;
+    });
+  }
+
+  @override
+  Future<Either<Failures, void>> resetPassword(
+    String email,
+    String password,
+  ) async {
+    return authRepositoryGuard(() async {
+      final reset = await remoteDataSource.resetPassword(email, password);
+      return reset;
+    });
+  }
+
+/*
   @override
   Future<Either<Failures, CustomerEntity>> getCurrentCustomer() async {
     return authRepositoryGuard(() async {
@@ -106,24 +125,6 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
-  @override
-  Future<Either<Failures, void>> forgotPassword(String email) async {
-    return authRepositoryGuard(() async {
-      final forgotPassword = await remoteDataSource.forgotPassword(email);
-      return forgotPassword;
-    });
-  }
-
-  @override
-  Future<Either<Failures, void>> resetPassword(
-    String email,
-    String password,
-  ) async {
-    return authRepositoryGuard(() async {
-      final reset = await remoteDataSource.resetPassword(email, password);
-      return reset;
-    });
-  }
 
   @override
   Future<Either<Failures, CustomerAddressInput>>
@@ -145,12 +146,6 @@ class AuthRepositoryImpl implements AuthRepository {
       return saved;
     });
   }
+  */
 
-  @override
-  Future<Either<Failures, String>> checkStartupSession() async {
-    return authRepositoryGuard(() async {
-      final status = await remoteDataSource.checkStartupSession();
-      return status;
-    });
-  }
 }

@@ -6,18 +6,15 @@ import 'package:ufg/core/config/supabase_config.dart';
 import 'package:ufg/core/errors/exceptions/auth_exceptions.dart';
 import 'package:ufg/core/errors/failures/auth_failures.dart';
 import 'package:ufg/features/auth/data/datasources/auth_data_source.dart';
-import 'package:ufg/features/auth/data/models/customer_model.dart';
-import 'package:ufg/features/auth/data/models/customer_address_model.dart';
 import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
 
-class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+class AuthDataSourceImpl implements AuthDataSource {
   SupabaseClient get _client => SupabaseConfig.client;
 
-  static const String _customerTable = 'customers';
-  static const String _customerAddressTable = 'customer_addresses';
-  static const String _customerColumns =
-      'id, email, first_name, last_name, phone_number, profile_image_url, '
-      'created_at, updated_at, addresses:customer_addresses(*)';
+  //static const String _customerTable = 'customers';
+  //static const String _customerColumns =
+    //  'id, email, first_name, last_name, phone_number, profile_image_url, '
+      //'created_at, updated_at';
 
   @override
   Future<Session> signIn(String email, String password) async {
@@ -40,16 +37,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final isCustomerAccount = await _isCurrentCustomerAccount();
-      if (!isCustomerAccount) {
-        await _signOutQuietly();
-        throw const AuthExceptions(
-          message:
-              'This account is not a customer account. Please use the UR '
-              'Stylist app or sign up as a customer.',
-        );
-      }
-
       return result.session!;
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
@@ -60,23 +47,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<void> signUp(
     String email,
     String password,
-    String firstName,
-    String lastName,
+    String fullname,
     String phone,
-    CustomerAddressInput address,
   ) async {
     try {
       final result = await _client.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'app_role': 'customer',
-          'first_name': firstName,
-          'last_name': lastName,
-          'phone_number': phone,
-          'signup_address': address.toJson(),
-        },
-        emailRedirectTo: 'ursbeauty://login/',
+        data: {'full_name': fullname, 'phone': phone},
       );
       if (result.user == null) {
         throw const AuthExceptions(
@@ -84,11 +62,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      await _ensureCustomerProfileFromUser(
+    /*  await _ensureCustomerProfileFromUser(
         result.user!,
         fallbackEmail: email,
         rethrowErrors: false,
-      );
+      );*/
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
@@ -136,14 +114,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw const InvalidOtpException();
       }
 
-      await _claimCustomerRoleForCurrentUser();
 
-      await _ensureCustomerProfileFromUser(
+    /*  await _ensureCustomerProfileFromUser(
         verifiedUser,
         fallbackEmail: email,
         rethrowErrors: true,
-      );
-      await _requireCurrentCustomerAccountForLogin();
+      );*/
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
@@ -173,15 +149,53 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
   }
+    @override
+  Future<void> forgotPassword(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(email);
+    } catch (error, stackTrace) {
+      throw AuthErrorMapper.toException(error, stackTrace);
+    }
+  }
 
   @override
+  Future<void> resetPassword(String email, String password) async {
+    try {
+      await _client.auth.updateUser(UserAttributes(password: password));
+    } catch (error, stackTrace) {
+      throw AuthErrorMapper.toException(error, stackTrace);
+    }
+  }
+
+  @override
+  Future<String> checkStartupSession() async {
+    try {
+      final session = _client.auth.currentSession;
+      if (session != null) {
+      }
+      return 'no_session';
+    } catch (e) {
+      if (kDebugMode) {
+        developer.log("checkUserSession error: ${e.toString()}");
+      }
+      return 'Something went wrong. Please try again.';
+    }
+  }
+
+    Future<void> _signOutQuietly() async {
+    try {
+      await _client.auth.signOut();
+    } catch (_) {}
+  }
+
+
+ /* @override
   Future<CustomerModel> getCurrentCustomer() async {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
         throw Exception('No authenticated user found');
       }
-      await _requireCurrentCustomerAccount();
 
       final response = await _fetchCustomerResponse(user.id);
 
@@ -229,7 +243,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<CustomerModel> updateCustomerProfile(CustomerModel customer) async {
     try {
-      await _requireCurrentCustomerAccount();
 
       await _client.auth.updateUser(
         UserAttributes(
@@ -284,32 +297,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final customer = _customerFromUser(user, fallbackEmail: fallbackEmail);
       await _ensureCustomerRecord(customer);
-      await _ensureSignupAddress(
-        customerId: customer.id,
-        metadata: user.userMetadata ?? const <String, dynamic>{},
-      );
     } catch (e) {
-      final isBookingsPolicyRecursionError = _isBookingsPolicyRecursionError(e);
       if (kDebugMode) {
-        print(
-          isBookingsPolicyRecursionError
-              ? 'Ignoring signup customer profile bootstrap error caused by bookings policy recursion: $e'
-              : 'Error ensuring signup customer profile: $e',
-        );
+        print('Error ensuring signup customer profile: $e');
       }
-      if (rethrowErrors && !isBookingsPolicyRecursionError) {
+      if (rethrowErrors) {
         rethrow;
       }
     }
-  }
-
-  bool _isBookingsPolicyRecursionError(Object error) {
-    final message = error.toString().toLowerCase();
-    return message.contains(
-          'infinite recursion detected in policy for relation "bookings"',
-        ) ||
-        message.contains('"code":"42p17"') ||
-        message.contains('code: 42p17');
   }
 
   CustomerModel _customerFromUser(User user, {required String fallbackEmail}) {
@@ -318,86 +313,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     return CustomerModel(
       id: user.id,
       email: (user.email ?? fallbackEmail).trim(),
-      firstName: (metadata['first_name'] ?? '').toString(),
-      lastName: (metadata['last_name'] ?? '').toString(),
-      phone: int.tryParse((metadata['phone_number'] ?? '0').toString()) ?? 0,
+      fullName: (metadata['full_name'] ?? '').toString(),
+      phone: int.tryParse((metadata['phone'] ?? '0').toString()) ?? 0,
     );
   }
 
-  Future<bool> _isCurrentCustomerAccount() async {
-    try {
-      final response = await _client.rpc('is_current_customer');
-      return response == true;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error checking customer role: $e');
-      }
-      return false;
-    }
-  }
 
-  Future<void> _requireCurrentCustomerAccount() async {
-    final isCustomerAccount = await _isCurrentCustomerAccount();
-    if (!isCustomerAccount) {
-      throw Exception('Current user is not a customer account.');
-    }
-  }
-
-  Future<void> _requireCurrentCustomerAccountForLogin() async {
-    final isCustomerAccount = await _isCurrentCustomerAccount();
-    if (!isCustomerAccount) {
-      await _signOutQuietly();
-      throw Exception(
-        'This account is not a customer account. Please use the UR Stylist app '
-        'or sign up as a customer.',
-      );
-    }
-  }
-
-  Future<void> _claimCustomerRoleForCurrentUser() async {
-    try {
-      await _client.rpc('claim_customer_role');
-    } catch (e) {
-      await _signOutQuietly();
-      throw Exception(
-        'This account cannot be used as a customer account. Please use the UR '
-        'Stylist app if this is a stylist account.',
-      );
-    }
-  }
-
-  Future<void> _signOutQuietly() async {
-    try {
-      await _client.auth.signOut();
-    } catch (_) {}
-  }
-
-  Future<void> _ensureSignupAddress({
-    required String customerId,
-    required Map<String, dynamic> metadata,
-  }) async {
-    final signupAddress = metadata['signup_address'];
-    if (signupAddress is! Map) {
-      return;
-    }
-
-    final existingAddress = await _client
-        .from(_customerAddressTable)
-        .select('id')
-        .eq('customer_id', customerId)
-        .limit(1)
-        .maybeSingle();
-
-    if (existingAddress != null) {
-      return;
-    }
-
-    final payload = Map<String, dynamic>.from(signupAddress);
-    payload['customer_id'] = customerId;
-    payload['is_default'] = true;
-
-    await createCustomerAddress(payload);
-  }
 
   Future<dynamic> _fetchCustomerResponse(String userId) async {
     try {
@@ -414,97 +335,5 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  @override
-  Future<void> forgotPassword(String email) async {
-    try {
-      await _client.auth.resetPasswordForEmail(email);
-    } catch (error, stackTrace) {
-      throw AuthErrorMapper.toException(error, stackTrace);
-    }
-  }
-
-  @override
-  Future<void> resetPassword(String email, String password) async {
-    try {
-      await _client.auth.updateUser(UserAttributes(password: password));
-    } catch (error, stackTrace) {
-      throw AuthErrorMapper.toException(error, stackTrace);
-    }
-  }
-
-  @override
-  Future<CustomerAddressModel> createCustomerAddress(
-    Map<String, dynamic> payload,
-  ) async {
-    try {
-      await _requireCurrentCustomerAccount();
-
-      final currentUser = _client.auth.currentUser;
-      final payloadWithCustomer = Map<String, dynamic>.from(payload);
-      final resolvedCustomerId =
-          (payloadWithCustomer['customer_id'] ?? currentUser?.id ?? '')
-              .toString()
-              .trim();
-
-      if (resolvedCustomerId.isEmpty) {
-        throw Exception('No authenticated customer found for address creation');
-      }
-
-      payloadWithCustomer['customer_id'] = resolvedCustomerId;
-
-      if (payloadWithCustomer['is_default'] == null) {
-        final existingAddress = await _client
-            .from(_customerAddressTable)
-            .select('id')
-            .eq('customer_id', resolvedCustomerId)
-            .limit(1)
-            .maybeSingle();
-        payloadWithCustomer['is_default'] = existingAddress == null;
-      }
-
-      final response = await _client
-          .from(_customerAddressTable)
-          .insert(payloadWithCustomer)
-          .select()
-          .single();
-
-      return CustomerAddressModel.fromJson(Map<String, dynamic>.from(response));
-    } catch (e) {
-      throw Exception('Failed to create customer address: $e');
-    }
-  }
-
-  @override
-  Future<String> checkStartupSession() async {
-    try {
-      final session = _client.auth.currentSession;
-      if (session != null) {
-        final isStylist = await isCurrentStylistAccount();
-        if (isStylist) {
-          return 'success';
-        } else {
-          await _client.auth.signOut(scope: SignOutScope.local);
-          return 'This account is not a stylist account. Please use the UR Beauty app.';
-        }
-      }
-      return 'no_session';
-    } catch (e) {
-      if (kDebugMode) {
-        developer.log("checkUserSession error: ${e.toString()}");
-      }
-      return 'Something went wrong. Please try again.';
-    }
-  }
-
-  Future<bool> isCurrentStylistAccount() async {
-    try {
-      final response = await _client.rpc('is_current_customer');
-      return response == true;
-    } catch (e) {
-      if (kDebugMode) {
-        developer.log("isCurrentStylistAccount error: ${e.toString()}");
-      }
-      return false;
-    }
-  }
+*/
 }

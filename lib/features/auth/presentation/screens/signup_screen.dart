@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ufg/core/constants/app_button_styles.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
-import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_state.dart';
@@ -22,7 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _email = TextEditingController(),
       _password = TextEditingController(),
       _confirm = TextEditingController(),
-      _firstName = TextEditingController(),
+      _fullName = TextEditingController(),
       _lastName = TextEditingController(),
       _phone = TextEditingController(),
       _line1 = TextEditingController(),
@@ -32,7 +29,6 @@ class _SignupScreenState extends State<SignupScreen> {
       _postal = TextEditingController(),
       _country = TextEditingController();
   bool _obscurePassword = true, _obscureConfirm = true;
-  double _latitude = 0, _longitude = 0;
 
   @override
   void dispose() {
@@ -40,7 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
       _email,
       _password,
       _confirm,
-      _firstName,
+      _fullName,
       _lastName,
       _phone,
       _line1,
@@ -57,16 +53,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.paper,
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     body: BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthAddressAutofilled) _applyAddress(state.address);
         if (state is EmailVerificationSent) _showVerification();
         if (state is AuthFailure) _message(_cleanError(state.message), true);
       },
       builder: (context, state) {
         final loading = state is AuthLoading;
-        final locating = state is AuthAddressLoading;
         return Stack(
           children: [
             const _SignupBackdrop(),
@@ -85,26 +79,26 @@ class _SignupScreenState extends State<SignupScreen> {
                     children: [
                       IconButton(
                         onPressed: () => context.go(AppRoutes.loginScreen),
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        color: AppColors.ink,
+                        icon: Icon(Icons.arrow_back_ios_new_rounded),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(height: 12),
                       const _SignupBrand(),
                       const SizedBox(height: 28),
-                      const Text(
+                       Text(
                         'Create your\nbeauty profile',
                         style: TextStyle(
-                          color: AppColors.ink,
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: AppSizes.headingSize,
                           height: 1.08,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                       Text(
                         'A few details and you’ll be ready to discover your next look.',
                         style: TextStyle(
-                          color: AppColors.muted,
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 16,
                           height: 1.5,
                         ),
@@ -120,7 +114,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               children: [
                                 Expanded(
                                   child: _field(
-                                    _firstName,
+                                    _fullName,
                                     'First name',
                                     Icons.person_outline_rounded,
                                     required: true,
@@ -194,37 +188,12 @@ class _SignupScreenState extends State<SignupScreen> {
                               match: true,
                             ),
                             const SizedBox(height: 26),
-                            const _SectionTitle('Your address'),
-                            const SizedBox(height: 8),
-                            const Text(
+                             Text(
                               'This helps us tailor services near you.',
                               style: TextStyle(
-                                color: AppColors.muted,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontSize: 13,
                               ),
-                            ),
-                            const SizedBox(height: 14),
-                            OutlinedButton.icon(
-                              onPressed: locating
-                                  ? null
-                                  : () => context.read<AuthBloc>().add(
-                                      AutoFillCurrentLocationAddressRequested(),
-                                    ),
-                              icon: locating
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.my_location_rounded),
-                              label: Text(
-                                locating
-                                    ? 'Finding your location...'
-                                    : 'Use current location',
-                              ),
-                              style: AppButtonStyles.outlined,
                             ),
                             const SizedBox(height: 16),
                             _field(
@@ -270,8 +239,8 @@ class _SignupScreenState extends State<SignupScreen> {
                               width: double.infinity,
                               height: AppSizes.buttonHeight,
                               child: ElevatedButton(
-                                onPressed: loading || locating ? null : _submit,
-                                style: AppButtonStyles.primary,
+                                onPressed: loading ? null : _submit,
+                                style: Theme.of(context).elevatedButtonTheme.style,
                                 child: loading
                                     ? const _SignupLoader()
                                     : const Text(
@@ -290,10 +259,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       Center(
                         child: TextButton(
                           onPressed: () => context.go(AppRoutes.loginScreen),
-                          child: const Text(
+                          child: Text(
                             'Already have an account?  Sign in',
                             style: TextStyle(
-                              color: AppColors.clay,
+                              color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -336,14 +305,14 @@ class _SignupScreenState extends State<SignupScreen> {
     },
     decoration: InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: AppColors.muted),
-      prefixIcon: Icon(icon, color: AppColors.clay),
+      labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+      prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
       suffixIcon: suffix,
       filled: true,
-      fillColor: AppColors.field,
+      fillColor: Theme.of(context).colorScheme.surface,
       border: _inputBorder(),
       enabledBorder: _inputBorder(),
-      focusedBorder: _inputBorder(AppColors.clay),
+      focusedBorder: _inputBorder(Theme.of(context).colorScheme.primary),
     ),
   );
   OutlineInputBorder _inputBorder([Color color = Colors.transparent]) =>
@@ -351,35 +320,14 @@ class _SignupScreenState extends State<SignupScreen> {
         borderRadius: BorderRadius.circular(AppSizes.fieldRadius),
         borderSide: BorderSide(color: color, width: 1.4),
       );
-  void _applyAddress(CustomerAddressInput a) => setState(() {
-    _latitude = a.latitude;
-    _longitude = a.longitude;
-    _line1.text = a.addressLine1;
-    _line2.text = a.addressLine2;
-    _city.text = a.city;
-    _state.text = a.state;
-    _postal.text = a.postalCode;
-    _country.text = a.country;
-  });
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
       SignUpRequested(
         email: _email.text.trim(),
         password: _password.text,
-        firstName: _firstName.text.trim(),
-        lastName: _lastName.text.trim(),
+        fullName: _fullName.text.trim(),
         phone: _phone.text.trim(),
-        address: CustomerAddressInput(
-          addressLine1: _line1.text.trim(),
-          addressLine2: _line2.text.trim(),
-          city: _city.text.trim(),
-          state: _state.text.trim(),
-          postalCode: _postal.text.trim(),
-          country: _country.text.trim(),
-          latitude: _latitude,
-          longitude: _longitude,
-        ),
       ),
     );
   }
@@ -406,7 +354,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: error ? AppColors.error : AppColors.clay,
+          backgroundColor: error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -421,12 +369,12 @@ class _SignupBackdrop extends StatelessWidget {
         Positioned(
           top: -120,
           right: -100,
-          child: _circle(AppColors.peach, 285),
+          child: _circle(Theme.of(context).colorScheme.primary, 285),
         ),
         Positioned(
           bottom: -130,
           left: -85,
-          child: _circle(AppColors.blush, 265),
+          child: _circle(Theme.of(context).colorScheme.primary, 265),
         ),
       ],
     ),
@@ -457,10 +405,10 @@ class _SignupBrand extends StatelessWidget {
         child: Image.asset('assets/images/logo.png'),
       ),
       const SizedBox(width: 12),
-      const Text(
+       Text(
         'URS Beauty',
         style: TextStyle(
-          color: AppColors.ink,
+          color: Theme.of(context).colorScheme.primary,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),
@@ -478,7 +426,7 @@ class _SignupCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white.withValues(alpha: .93),
       borderRadius: BorderRadius.circular(AppSizes.pageRadius),
-      border: Border.all(color: AppColors.border),
+      border: Border.all(color: Theme.of(context).colorScheme.primary),
       boxShadow: const [
         BoxShadow(
           color: Color(0x14000000),
@@ -497,8 +445,8 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     text,
-    style: const TextStyle(
-      color: AppColors.ink,
+    style: TextStyle(
+      color: Theme.of(context).colorScheme.primary,
       fontSize: 18,
       fontWeight: FontWeight.w800,
     ),

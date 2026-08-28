@@ -1,14 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ufg/features/auth/domain/usecases/check_startup_session.dart';
 import 'package:ufg/features/auth/domain/usecases/forgot_password.dart';
-import 'package:ufg/features/auth/domain/usecases/get_current_location_address.dart';
-import 'package:ufg/features/auth/domain/usecases/get_current_client.dart';
 import 'package:ufg/features/auth/domain/usecases/reset_password.dart';
 import 'package:ufg/features/auth/domain/usecases/send_otp.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_in.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_out.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_up.dart';
-import 'package:ufg/features/auth/domain/usecases/update_client_profile.dart';
 import 'package:ufg/features/auth/domain/usecases/verify_otp.dart';
 import 'package:ufg/features/auth/domain/usecases/verify_password_reset_otp.dart';
 import 'auth_event.dart';
@@ -21,9 +18,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SendOtp sendOtp;
   final VerifyOTP verifyOTP;
   final VerifyPasswordResetOtp verifyPasswordResetOtp;
-  final GetCurrentLocationAddress getCurrentLocationAddress;
-  final GetCurrentCustomer getCurrentCustomer;
-  final UpdateCustomerProfile updateCustomerProfile;
+//  final GetCurrentLocationAddress getCurrentLocationAddress;
+ // final GetCurrentCustomer getCurrentCustomer;
+ // final UpdateCustomerProfile updateCustomerProfile;
   final ForgotPassword forgotPassword;
   final ResetPassword resetPassword;
   final CheckStartupSession checkStartupSession;
@@ -34,9 +31,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     this.sendOtp,
     this.verifyOTP,
     this.verifyPasswordResetOtp,
-    this.getCurrentLocationAddress,
-    this.getCurrentCustomer,
-    this.updateCustomerProfile,
+   // this.getCurrentLocationAddress,
+   // this.getCurrentCustomer,
+   // this.updateCustomerProfile,
     this.forgotPassword,
     this.resetPassword,
     this.checkStartupSession,
@@ -69,10 +66,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result = await signUp(
         event.email,
         event.password,
-        event.firstName,
-        event.lastName,
+        event.fullName,
         event.phone,
-        event.address,
       );
       result.fold(
         (failure) => emit(AuthFailure(failure.message)),
@@ -87,22 +82,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         (_) => emit(AuthLoggedOut()),
       );
     });
-    on<AutoFillCurrentLocationAddressRequested>((event, emit) async {
+ /*on<AutoFillCurrentLocationAddressRequested>((event, emit) async {
       emit(AuthAddressLoading());
       final result = await getCurrentLocationAddress();
       result.fold(
         (failure) => emit(AuthFailure(failure.message)),
         (address) => emit(AuthAddressAutofilled(address)),
       );
-    });
-    on<SendOtpRequested>((event, emit) async {
+    });*/
+   /* on<SendOtpRequested>((event, emit) async {
       emit(AuthLoading());
       final result = await sendOtp(event.email);
       result.fold(
         (failure) => emit(AuthFailure(failure.message)),
         (_) => emit(OtpSent()),
       );
-    });
+    });*/
 
     on<VerifyOtpRequested>((event, emit) async {
       emit(AuthLoading());
