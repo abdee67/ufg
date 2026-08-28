@@ -21,6 +21,8 @@ class AppRoutes {
   static const String help = '/help';
   static const String about = '/about';
   static const String privacyPolicy = '/privacy-policy';
-  static const String termsAndConditions = '/terms-and-conditions';
+  static const String membershipApply = '/membership/apply';
+  static const String membershipStatus = '/membership/status';
+  static const String membershipPayment = '/membership/payment';
   static const String logout = '/logout';
 }

@@ -8,6 +8,8 @@ import 'package:ufg/features/auth/presentation/screens/login_screen.dart';
 import 'package:ufg/features/auth/presentation/screens/signup_screen.dart';
 import 'package:ufg/features/dashboard/dashboard_wrapper.dart';
 import 'package:ufg/features/home/presentation/pages/home_screen.dart';
+import 'package:ufg/features/membership/presentation/pages/membership_application_page.dart';
+import 'package:ufg/features/membership/presentation/pages/membership_status_page.dart';
 
 class AppRouter {
   final bool showOnboarding;
@@ -58,6 +60,14 @@ class AppRouter {
         builder: (_, state) => ResetPasswordScreen(
           email: state.uri.queryParameters['email'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.membershipApply,
+        builder: (_, _) => const MembershipApplicationPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.membershipStatus,
+        builder: (_, _) => const MembershipStatusPage(),
       ),
     ],
     errorBuilder: (context, state) {
