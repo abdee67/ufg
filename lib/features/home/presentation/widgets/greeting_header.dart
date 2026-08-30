@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ufg/features/home/presentation/bloc/home_bloc.dart';
 
 class GreetingHeader extends StatefulWidget {
   const GreetingHeader({super.key});

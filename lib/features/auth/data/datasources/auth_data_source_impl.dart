@@ -6,7 +6,6 @@ import 'package:ufg/core/config/supabase_config.dart';
 import 'package:ufg/core/errors/exceptions/auth_exceptions.dart';
 import 'package:ufg/core/errors/failures/auth_failures.dart';
 import 'package:ufg/features/auth/data/datasources/auth_data_source.dart';
-import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
 
 class AuthDataSourceImpl implements AuthDataSource {
   SupabaseClient get _client => SupabaseConfig.client;

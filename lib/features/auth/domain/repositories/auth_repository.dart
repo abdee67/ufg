@@ -1,9 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ufg/core/errors/failures.dart';
-import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
-import 'package:ufg/features/auth/domain/entities/customer_address_entity.dart';
-import 'package:ufg/features/auth/domain/entities/customer_entity.dart';
 
 abstract class AuthRepository {
   Future<Either<Failures, void>> signUp(

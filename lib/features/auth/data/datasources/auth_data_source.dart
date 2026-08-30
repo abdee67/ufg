@@ -1,6 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ufg/features/auth/data/models/customer_model.dart';
-import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
 
 abstract class AuthDataSource {
   Future<void> signUp(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 
 class SessionCheckingSplash extends StatelessWidget {
   const SessionCheckingSplash({super.key});

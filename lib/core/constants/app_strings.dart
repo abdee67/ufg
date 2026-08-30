@@ -1,4 +1,4 @@
-library constants;
+library;
 
 // Onboarding Screens
 const String app_name = "APP NAME";
