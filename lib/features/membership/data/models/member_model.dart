@@ -22,16 +22,4 @@ class MemberModel extends MemberEntity {
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'profile_id': profileId,
-      'member_number': memberNumber,
-      'membership_date': membershipDate.toIso8601String(),
-      'status': status.toDbString(),
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-    };
-  }
 }
