@@ -1,33 +1,21 @@
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
 import 'package:ufg/core/errors/failures.dart';
 import 'package:ufg/features/membership/domain/entities/member_entity.dart';
 import 'package:ufg/features/membership/domain/entities/membership_application_entity.dart';
-import 'package:ufg/features/membership/domain/entities/profile_entity.dart';
 import 'package:ufg/features/membership/domain/repositories/membership_repository.dart';
 
-class MembershipStatusResult extends Equatable {
-  final ProfileEntity profile;
+/// Composite status returned by GetMembershipStatus.
+class MembershipStatusResult {
   final MembershipApplicationEntity? application;
   final MemberEntity? member;
 
-  const MembershipStatusResult({
-    required this.profile,
-    this.application,
-    this.member,
-  });
+  const MembershipStatusResult({this.application, this.member});
 
-  bool get isApprovedMember => member != null && member!.status == MemberStatus.active;
-  bool get hasPendingApplication =>
-      application != null &&
-      (application!.status == MembershipApplicationStatus.pending ||
-          application!.status == MembershipApplicationStatus.underReview);
-  bool get isRejected =>
-      application != null && application!.status == MembershipApplicationStatus.rejected;
-  bool get canApply => !isApprovedMember && !hasPendingApplication;
-
-  @override
-  List<Object?> get props => [profile, application, member];
+  bool get isActiveMember => member != null && member!.isActive;
+  bool get hasPendingApplication => application != null && application!.isPending;
+  bool get isApproved => application != null && application!.isApproved;
+  bool get isRejected => application != null && application!.isRejected;
+  bool get hasNoApplication => application == null;
 }
 
 class GetMembershipStatus {
@@ -36,28 +24,27 @@ class GetMembershipStatus {
   GetMembershipStatus(this.repository);
 
   Future<Either<Failures, MembershipStatusResult>> call() async {
-    final profileResult = await repository.getCurrentProfile();
+    // Fetch application
+    final appResult = await repository.getMyApplication();
+    MembershipApplicationEntity? application;
+    if (appResult.isRight()) {
+      application = appResult.getOrElse(() => null);
+    } else {
+      return Left(appResult.fold((l) => l, (_) => const Failures(message: 'Unknown error')));
+    }
 
-    return profileResult.fold(
-      (failure) => Left(failure),
-      (profile) async {
-        final appResult = await repository.getLatestApplication();
-        final memberResult = await repository.getActiveMemberDetails();
+    // Fetch member details
+    final memberResult = await repository.getMyMemberDetails();
+    MemberEntity? member;
+    if (memberResult.isRight()) {
+      member = memberResult.getOrElse(() => null);
+    } else {
+      return Left(memberResult.fold((l) => l, (_) => const Failures(message: 'Unknown error')));
+    }
 
-        MembershipApplicationEntity? application;
-        MemberEntity? member;
-
-        appResult.fold((_) {}, (app) => application = app);
-        memberResult.fold((_) {}, (m) => member = m);
-
-        return Right(
-          MembershipStatusResult(
-            profile: profile,
-            application: application,
-            member: member,
-          ),
-        );
-      },
-    );
+    return Right(MembershipStatusResult(
+      application: application,
+      member: member,
+    ));
   }
 }

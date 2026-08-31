@@ -7,7 +7,7 @@ class CancelMembershipApplication {
 
   CancelMembershipApplication(this.repository);
 
-  Future<Either<Failures, void>> call(String applicationId) async {
+  Future<Either<Failures, void>> call(String applicationId) {
     return repository.cancelApplication(applicationId);
   }
 }

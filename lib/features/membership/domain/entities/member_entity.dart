@@ -8,19 +8,33 @@ enum MemberStatus {
 
   static MemberStatus fromString(String? value) {
     switch (value?.toLowerCase()) {
+      case 'active':
+        return MemberStatus.active;
       case 'suspended':
         return MemberStatus.suspended;
       case 'removed':
         return MemberStatus.removed;
       case 'inactive':
         return MemberStatus.inactive;
-      case 'active':
       default:
-        return MemberStatus.active;
+        return MemberStatus.inactive;
     }
   }
 
   String toDbString() => name.toLowerCase();
+
+  String get displayLabel {
+    switch (this) {
+      case MemberStatus.active:
+        return 'Active';
+      case MemberStatus.suspended:
+        return 'Suspended';
+      case MemberStatus.removed:
+        return 'Removed';
+      case MemberStatus.inactive:
+        return 'Inactive';
+    }
+  }
 }
 
 class MemberEntity extends Equatable {
@@ -41,6 +55,8 @@ class MemberEntity extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  bool get isActive => status == MemberStatus.active;
 
   @override
   List<Object?> get props => [

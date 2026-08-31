@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 enum MembershipApplicationStatus {
-  pending,
+  draft,
+  submitted,
   underReview,
   approved,
   rejected,
@@ -9,6 +10,10 @@ enum MembershipApplicationStatus {
 
   static MembershipApplicationStatus fromString(String? value) {
     switch (value?.toLowerCase()) {
+      case 'draft':
+        return MembershipApplicationStatus.draft;
+      case 'submitted':
+        return MembershipApplicationStatus.submitted;
       case 'under_review':
         return MembershipApplicationStatus.underReview;
       case 'approved':
@@ -17,9 +22,8 @@ enum MembershipApplicationStatus {
         return MembershipApplicationStatus.rejected;
       case 'cancelled':
         return MembershipApplicationStatus.cancelled;
-      case 'pending':
       default:
-        return MembershipApplicationStatus.pending;
+        return MembershipApplicationStatus.draft;
     }
   }
 
@@ -27,14 +31,25 @@ enum MembershipApplicationStatus {
     switch (this) {
       case MembershipApplicationStatus.underReview:
         return 'under_review';
+      default:
+        return name.toLowerCase();
+    }
+  }
+
+  String get displayLabel {
+    switch (this) {
+      case MembershipApplicationStatus.draft:
+        return 'Draft';
+      case MembershipApplicationStatus.submitted:
+        return 'Submitted';
+      case MembershipApplicationStatus.underReview:
+        return 'Under Review';
       case MembershipApplicationStatus.approved:
-        return 'approved';
+        return 'Approved';
       case MembershipApplicationStatus.rejected:
-        return 'rejected';
+        return 'Rejected';
       case MembershipApplicationStatus.cancelled:
-        return 'cancelled';
-      case MembershipApplicationStatus.pending:
-        return 'pending';
+        return 'Cancelled';
     }
   }
 }
@@ -63,6 +78,15 @@ class MembershipApplicationEntity extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  bool get isPending =>
+      status == MembershipApplicationStatus.submitted ||
+      status == MembershipApplicationStatus.underReview;
+  bool get isApproved => status == MembershipApplicationStatus.approved;
+  bool get isRejected => status == MembershipApplicationStatus.rejected;
+  bool get isCancellable =>
+      status == MembershipApplicationStatus.draft ||
+      status == MembershipApplicationStatus.submitted;
 
   @override
   List<Object?> get props => [
