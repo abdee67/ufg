@@ -6,14 +6,10 @@ import 'package:ufg/core/config/supabase_config.dart';
 import 'package:ufg/core/errors/exceptions/auth_exceptions.dart';
 import 'package:ufg/core/errors/failures/auth_failures.dart';
 import 'package:ufg/features/auth/data/datasources/auth_data_source.dart';
+import 'package:ufg/features/auth/data/models/profile_model.dart';
 
 class AuthDataSourceImpl implements AuthDataSource {
   SupabaseClient get _client => SupabaseConfig.client;
-
-  //static const String _customerTable = 'customers';
-  //static const String _customerColumns =
-    //  'id, email, first_name, last_name, phone_number, profile_image_url, '
-      //'created_at, updated_at';
 
   @override
   Future<Session> signIn(String email, String password) async {
@@ -60,12 +56,6 @@ class AuthDataSourceImpl implements AuthDataSource {
           message: 'We could not create your account. Please try again.',
         );
       }
-
-    /*  await _ensureCustomerProfileFromUser(
-        result.user!,
-        fallbackEmail: email,
-        rethrowErrors: false,
-      );*/
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
@@ -88,7 +78,6 @@ class AuthDataSourceImpl implements AuthDataSource {
         await _client.auth.signInWithOtp(
           email: email,
           shouldCreateUser: true,
-          data: const {'app_role': 'customer'},
         );
       } catch (error, stackTrace) {
         throw AuthErrorMapper.toException(error, stackTrace);
@@ -112,13 +101,6 @@ class AuthDataSourceImpl implements AuthDataSource {
       if (verifiedUser == null) {
         throw const InvalidOtpException();
       }
-
-
-    /*  await _ensureCustomerProfileFromUser(
-        verifiedUser,
-        fallbackEmail: email,
-        rethrowErrors: true,
-      );*/
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
@@ -148,7 +130,8 @@ class AuthDataSourceImpl implements AuthDataSource {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
   }
-    @override
+
+  @override
   Future<void> forgotPassword(String email) async {
     try {
       await _client.auth.resetPasswordForEmail(email);
@@ -171,6 +154,7 @@ class AuthDataSourceImpl implements AuthDataSource {
     try {
       final session = _client.auth.currentSession;
       if (session != null) {
+        return 'authenticated';
       }
       return 'no_session';
     } catch (e) {
@@ -181,158 +165,55 @@ class AuthDataSourceImpl implements AuthDataSource {
     }
   }
 
-    Future<void> _signOutQuietly() async {
-    try {
-      await _client.auth.signOut();
-    } catch (_) {}
-  }
-
-
- /* @override
-  Future<CustomerModel> getCurrentCustomer() async {
+  @override
+  Future<ProfileModel> getCurrentProfile() async {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        throw Exception('No authenticated user found');
+        throw const AuthExceptions(
+          message: 'No authenticated user found.',
+        );
       }
 
-      final response = await _fetchCustomerResponse(user.id);
+      // Fetch profile
+      final profileResponse = await _client
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .maybeSingle();
 
-      if (response != null) {
-        final customer = CustomerModel.fromJson(
-          Map<String, dynamic>.from(response),
+      if (profileResponse == null) {
+        throw const AuthExceptions(
+          message: 'Profile not found. Please contact support.',
         );
-        if (customer.id.isNotEmpty && customer.email.isNotEmpty) {
-          return customer;
+      }
+
+      // Fetch roles
+      final rolesResponse = await _client
+          .from('user_roles')
+          .select('roles(code)')
+          .eq('user_id', user.id);
+
+      final roles = <String>[];
+      for (final row in rolesResponse) {
+        final roleData = row['roles'];
+        if (roleData != null && roleData is Map && roleData['code'] != null) {
+          roles.add(roleData['code'] as String);
         }
       }
 
-      final metadata = user.userMetadata ?? <String, dynamic>{};
-      final fallbackCustomer = CustomerModel(
-        id: user.id,
-        email: user.email ?? '',
-        firstName: (metadata['first_name'] ?? '').toString(),
-        lastName: (metadata['last_name'] ?? '').toString(),
-        phone: int.tryParse((metadata['phone_number'] ?? '0').toString()) ?? 0,
+      return ProfileModel.fromJson(
+        Map<String, dynamic>.from(profileResponse),
+        roles: roles,
       );
-
-      await _ensureCustomerRecord(fallbackCustomer);
-      await _ensureCustomerProfileFromUser(
-        user,
-        fallbackEmail: user.email ?? '',
-        rethrowErrors: false,
-      );
-
-      final refreshedResponse = await _fetchCustomerResponse(user.id);
-      if (refreshedResponse != null) {
-        return CustomerModel.fromJson(
-          Map<String, dynamic>.from(refreshedResponse),
-        );
-      }
-
-      return fallbackCustomer;
     } catch (error, stackTrace) {
-      if (kDebugMode) {
-        print('Error retrieving current customer: $error');
-      }
       throw AuthErrorMapper.toException(error, stackTrace);
     }
   }
 
-  @override
-  Future<CustomerModel> updateCustomerProfile(CustomerModel customer) async {
+  Future<void> _signOutQuietly() async {
     try {
-
-      await _client.auth.updateUser(
-        UserAttributes(
-          email: customer.email,
-          data: {
-            'first_name': customer.firstName,
-            'last_name': customer.lastName,
-            'phone_number': customer.phone.toString(),
-          },
-        ),
-      );
-
-      await _client.from(_customerTable).upsert({
-        'id': customer.id,
-        'email': customer.email,
-        'first_name': customer.firstName,
-        'last_name': customer.lastName,
-        'phone_number': customer.phone,
-        'profile_image_url': customer.profileImage,
-        'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'id');
-
-      return customer;
-    } catch (e) {
-      throw Exception('Failed to update customer profile: $e');
-    }
+      await _client.auth.signOut();
+    } catch (_) {}
   }
-
-  Future<void> _ensureCustomerRecord(CustomerModel customer) async {
-    try {
-      await _client.from(_customerTable).upsert({
-        'id': customer.id,
-        'email': customer.email,
-        'first_name': customer.firstName,
-        'last_name': customer.lastName,
-        'phone_number': customer.phone,
-        'profile_image_url': customer.profileImage,
-        'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'id');
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error ensuring customer record: $e');
-      }
-    }
-  }
-
-  Future<void> _ensureCustomerProfileFromUser(
-    User user, {
-    required String fallbackEmail,
-    required bool rethrowErrors,
-  }) async {
-    try {
-      final customer = _customerFromUser(user, fallbackEmail: fallbackEmail);
-      await _ensureCustomerRecord(customer);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error ensuring signup customer profile: $e');
-      }
-      if (rethrowErrors) {
-        rethrow;
-      }
-    }
-  }
-
-  CustomerModel _customerFromUser(User user, {required String fallbackEmail}) {
-    final metadata = user.userMetadata ?? const <String, dynamic>{};
-
-    return CustomerModel(
-      id: user.id,
-      email: (user.email ?? fallbackEmail).trim(),
-      fullName: (metadata['full_name'] ?? '').toString(),
-      phone: int.tryParse((metadata['phone'] ?? '0').toString()) ?? 0,
-    );
-  }
-
-
-
-  Future<dynamic> _fetchCustomerResponse(String userId) async {
-    try {
-      return await _client
-          .from(_customerTable)
-          .select(_customerColumns)
-          .eq('id', userId)
-          .maybeSingle();
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error retrieving current customer: $e');
-      }
-      return null;
-    }
-  }
-
-*/
 }

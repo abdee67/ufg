@@ -3,18 +3,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ufg/core/errors/failures.dart';
 import 'package:ufg/core/errors/failures/auth_failures.dart';
 import 'package:ufg/features/auth/data/datasources/auth_data_source.dart';
+import 'package:ufg/features/auth/domain/entities/profile_entity.dart';
 import 'package:ufg/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthDataSource remoteDataSource;
   AuthRepositoryImpl(this.remoteDataSource);
+
   @override
   Future<Either<Failures, Session>> signIn(
     String email,
     String password,
   ) async {
     return authRepositoryGuard(() async {
-      // Attempt to sign in with email and password
       final result = await remoteDataSource.signIn(email, password);
       return result;
     });
@@ -41,7 +42,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failures, void>> sendOtp(String email) async {
     return authRepositoryGuard(() async {
-      // Try resend first (for existing users)
       return await remoteDataSource.sendOtp(email);
     });
   }
@@ -71,7 +71,6 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
-  
   @override
   Future<Either<Failures, String>> checkStartupSession() async {
     return authRepositoryGuard(() async {
@@ -80,7 +79,7 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
-    @override
+  @override
   Future<Either<Failures, void>> forgotPassword(String email) async {
     return authRepositoryGuard(() async {
       final forgotPassword = await remoteDataSource.forgotPassword(email);
@@ -99,53 +98,11 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
-/*
   @override
-  Future<Either<Failures, CustomerEntity>> getCurrentCustomer() async {
+  Future<Either<Failures, ProfileEntity>> getCurrentProfile() async {
     return authRepositoryGuard(() async {
-      final user = await remoteDataSource.getCurrentCustomer();
-      return user.toEntity();
+      final profile = await remoteDataSource.getCurrentProfile();
+      return profile;
     });
   }
-
-  @override
-  Future<Either<Failures, CustomerEntity>> updateCustomerProfile(
-    CustomerEntity client,
-  ) async {
-    return authRepositoryGuard(() async {
-      final clientModel = CustomerModel(
-        id: client.id,
-        email: client.email,
-        firstName: client.firstName,
-        lastName: client.lastName,
-        phone: client.phone,
-      );
-      final update = await remoteDataSource.updateCustomerProfile(clientModel);
-      return update;
-    });
-  }
-
-
-  @override
-  Future<Either<Failures, CustomerAddressInput>>
-  getCurrentLocationAddress() async {
-    return authRepositoryGuard(() async {
-      final address = await locationDataSource.getCurrentLocationAddress();
-      return address;
-    });
-  }
-
-  @override
-  Future<Either<Failures, CustomerAddressModel>> createCustomerAddress(
-    CustomerAddressInput input,
-  ) async {
-    return authRepositoryGuard(() async {
-      final saved = await remoteDataSource.createCustomerAddress(
-        input.toJson(),
-      );
-      return saved;
-    });
-  }
-  */
-
 }

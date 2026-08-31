@@ -1,4 +1,3 @@
-import 'package:ufg/features/auth/domain/entities/customer_address_input.dart';
 
 abstract class AuthState {}
 
@@ -25,8 +24,7 @@ class PasswordResetOtpVerified extends AuthState {}
 class ResetPasswordSent extends AuthState {}
 
 class AuthAddressAutofilled extends AuthState {
-  final CustomerAddressInput address;
-  AuthAddressAutofilled(this.address);
+  AuthAddressAutofilled();
 }
 
 class AuthFailure extends AuthState {
