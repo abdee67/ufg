@@ -1,38 +1,29 @@
-import 'package:equatable/equatable.dart';
+abstract class MembershipEvent {}
 
-abstract class MembershipEvent extends Equatable {
-  const MembershipEvent();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class LoadMembershipStatusRequested extends MembershipEvent {
-  const LoadMembershipStatusRequested();
-}
+class LoadMembershipStatusRequested extends MembershipEvent {}
 
 class SubmitMembershipApplicationRequested extends MembershipEvent {
-  final String nationalId;
   final String address;
   final DateTime dateOfBirth;
   final String phone;
+  final String filePath;
+  final String fileName;
+  final String mimeType;
+  final int fileSizeBytes;
 
-  const SubmitMembershipApplicationRequested({
-    required this.nationalId,
+  SubmitMembershipApplicationRequested({
     required this.address,
     required this.dateOfBirth,
     required this.phone,
+    required this.filePath,
+    required this.fileName,
+    required this.mimeType,
+    required this.fileSizeBytes,
   });
-
-  @override
-  List<Object?> get props => [nationalId, address, dateOfBirth, phone];
 }
 
 class CancelMembershipApplicationRequested extends MembershipEvent {
   final String applicationId;
 
-  const CancelMembershipApplicationRequested(this.applicationId);
-
-  @override
-  List<Object?> get props => [applicationId];
+  CancelMembershipApplicationRequested({required this.applicationId});
 }
