@@ -25,7 +25,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
   }
 
   void _refreshStatus() {
-    context.read<MembershipBloc>().add(const LoadMembershipStatusRequested());
+    context.read<MembershipBloc>().add(LoadMembershipStatusRequested());
   }
 
   @override
@@ -70,15 +70,17 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
           }
 
           if (state is MembershipStatusLoaded) {
-            final result = state.result;
-
-            if (result.isApprovedMember) {
-              return _buildApprovedMemberView(result.member!, theme, colorScheme);
+            if (state.isActiveMember) {
+              return _buildApprovedMemberView(
+                state.member!,
+                theme,
+                colorScheme,
+              );
             }
 
-            if (result.application != null) {
+            if (state.application != null) {
               return _buildApplicationStatusView(
-                result.application!,
+                state.application!,
                 theme,
                 colorScheme,
               );
@@ -294,7 +296,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
           ),
           const SizedBox(height: 24),
 
-          // Timeline steps
+          // Process Timeline
           Text(
             'Application Process',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -304,8 +306,9 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
           const SizedBox(height: 16),
 
           _timelineStep(
-            title: '1. Application Submitted',
-            subtitle: 'Your profile and KYC documents have been received.',
+            title: '1. Application & KYC Submitted',
+            subtitle:
+                'Your profile and Fayda identity document have been received.',
             isDone: true,
             isActive: false,
             colorScheme: colorScheme,
@@ -314,17 +317,17 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
           _timelineStep(
             title: '2. Under Review & Verification',
             subtitle:
-                'Unity Finance Group authorized staff are verifying your identity.',
+                'Unity Finance authorized staff are verifying your identity document.',
             isDone: isApproved,
-            isActive: status == MembershipApplicationStatus.pending ||
+            isActive: status == MembershipApplicationStatus.submitted ||
                 status == MembershipApplicationStatus.underReview,
             colorScheme: colorScheme,
             theme: theme,
           ),
           _timelineStep(
-            title: '3. Membership Fee & Activation',
+            title: '3. Member Account Activation',
             subtitle:
-                'Payment verification for registration fee and savings account setup.',
+                'Atomic activation of membership and financial capabilities.',
             isDone: isApproved,
             isActive: false,
             colorScheme: colorScheme,
@@ -358,7 +361,9 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                 style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                 onPressed: () {
                   context.read<MembershipBloc>().add(
-                        CancelMembershipApplicationRequested(application.id),
+                        CancelMembershipApplicationRequested(
+                          applicationId: application.id,
+                        ),
                       );
                 },
               ),
@@ -391,7 +396,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'You are currently a Non-Member. Apply now to unlock savings accounts and loan applications.',
+              'You are currently a Non-Member. Apply now to unlock savings accounts and loan features.',
               style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -446,10 +451,15 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
         fg = Colors.grey;
         label = 'Cancelled';
         break;
-      case MembershipApplicationStatus.pending:
+      case MembershipApplicationStatus.draft:
+        bg = Colors.purple.withValues(alpha: 0.15);
+        fg = Colors.purple;
+        label = 'Draft';
+        break;
+      case MembershipApplicationStatus.submitted:
         bg = Colors.orange.withValues(alpha: 0.15);
         fg = Colors.orange;
-        label = 'Pending';
+        label = 'Submitted';
         break;
     }
 

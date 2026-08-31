@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -18,21 +19,22 @@ class MembershipApplicationPage extends StatefulWidget {
 
 class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nationalIdController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   DateTime? _selectedDateOfBirth;
   bool _agreeToRules = false;
 
+  // Fayda KYC Document
+  PlatformFile? _pickedFile;
+
   @override
   void initState() {
     super.initState();
-    context.read<MembershipBloc>().add(const LoadMembershipStatusRequested());
+    context.read<MembershipBloc>().add(LoadMembershipStatusRequested());
   }
 
   @override
   void dispose() {
-    _nationalIdController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -60,8 +62,66 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
     }
   }
 
-  void _submit() {
+  Future<void> _pickFaydaDocument() async {
+    try {
+      final PlatformFile? file = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+      );
+
+      if (file != null) {
+        // 10MB limit
+        int sizeInByte = await file.length();
+        const int maxAllowedSize = 10 * 1024 * 1024;
+        if (sizeInByte > maxAllowedSize) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Selected document exceeds the 10MB limit. Please choose a smaller file.',
+                ),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+          return;
+        }
+
+        setState(() {
+          _pickedFile = file;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick document: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  String _determineMimeType(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
     if (_selectedDateOfBirth == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -71,6 +131,19 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
       );
       return;
     }
+
+    if (_pickedFile == null || _pickedFile!.path == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Please upload your Fayda / National ID document image or PDF',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
     if (!_agreeToRules) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -83,14 +156,20 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
       return;
     }
 
+    final mimeType = _determineMimeType(_pickedFile!.name);
+    final int fileSize = _pickedFile!.length() as int;
+
     context.read<MembershipBloc>().add(
-          SubmitMembershipApplicationRequested(
-            nationalId: _nationalIdController.text.trim(),
-            address: _addressController.text.trim(),
-            dateOfBirth: _selectedDateOfBirth!,
-            phone: _phoneController.text.trim(),
-          ),
-        );
+      SubmitMembershipApplicationRequested(
+        address: _addressController.text.trim(),
+        dateOfBirth: _selectedDateOfBirth!,
+        phone: _phoneController.text.trim(),
+        filePath: _pickedFile!.path!,
+        fileName: _pickedFile!.name,
+        mimeType: mimeType,
+        fileSizeBytes: fileSize,
+      ),
+    );
   }
 
   @override
@@ -119,7 +198,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Application submitted! Number: ${state.applicationNumber}',
+                  'Application submitted! Ref: ${state.application.applicationNumber}',
                 ),
                 backgroundColor: colorScheme.primary,
               ),
@@ -133,29 +212,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
               ),
             );
           } else if (state is MembershipStatusLoaded) {
-            // Autofill existing profile data
-            if (_phoneController.text.isEmpty &&
-                state.result.profile.phone != null) {
-              _phoneController.text = state.result.profile.phone!;
-            }
-            if (_nationalIdController.text.isEmpty &&
-                state.result.profile.nationalId != null) {
-              _nationalIdController.text = state.result.profile.nationalId!;
-            }
-            if (_addressController.text.isEmpty &&
-                state.result.profile.address != null) {
-              _addressController.text = state.result.profile.address!;
-            }
-            if (_selectedDateOfBirth == null &&
-                state.result.profile.dateOfBirth != null) {
-              setState(() {
-                _selectedDateOfBirth = state.result.profile.dateOfBirth;
-              });
-            }
-
-            // If already has application or is approved, redirect to status
-            if (state.result.hasPendingApplication ||
-                state.result.isApprovedMember) {
+            if (state.hasPendingApplication || state.isActiveMember) {
               context.go(AppRoutes.membershipStatus);
             }
           }
@@ -202,7 +259,9 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                           Text(
                             'Become a member to start monthly savings, access flexible lending, and participate in community financial growth.',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onPrimary.withValues(alpha: 0.9),
+                              color: colorScheme.onPrimary.withValues(
+                                alpha: 0.9,
+                              ),
                             ),
                           ),
                         ],
@@ -237,24 +296,6 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // National ID Field
-                    TextFormField(
-                      controller: _nationalIdController,
-                      decoration: InputDecoration(
-                        labelText: 'National ID / Passport Number *',
-                        prefixIcon: const Icon(Icons.badge_outlined),
-                        filled: true,
-                        fillColor: colorScheme.surface,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      validator: (val) => val == null || val.trim().isEmpty
-                          ? 'National ID is required for KYC compliance'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-
                     // Date of Birth Picker
                     InkWell(
                       onTap: _pickDateOfBirth,
@@ -267,9 +308,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                         decoration: BoxDecoration(
                           color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: theme.dividerColor,
-                          ),
+                          border: Border.all(color: theme.dividerColor),
                         ),
                         child: Row(
                           children: [
@@ -291,8 +330,9 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _selectedDateOfBirth != null
-                                        ? DateFormat('yyyy-MM-dd')
-                                            .format(_selectedDateOfBirth!)
+                                        ? DateFormat(
+                                            'yyyy-MM-dd',
+                                          ).format(_selectedDateOfBirth!)
                                         : 'Tap to select date',
                                     style: theme.textTheme.bodyLarge?.copyWith(
                                       color: _selectedDateOfBirth != null
@@ -327,7 +367,104 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                           ? 'Residential address is required'
                           : null,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
+
+                    // Fayda ID Upload Section
+                    Text(
+                      'Fayda / National ID Document',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Upload an official Fayda ID or National Passport (PDF, JPEG, or PNG, max 10MB). Your document is securely stored in an encrypted private vault.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Document Picker Card
+                    InkWell(
+                      onTap: _pickFaydaDocument,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: _pickedFile != null
+                              ? colorScheme.primary.withValues(alpha: 0.05)
+                              : colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _pickedFile != null
+                                ? colorScheme.primary
+                                : theme.dividerColor,
+                            width: _pickedFile != null ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _pickedFile != null
+                                    ? (_pickedFile!.extension == 'pdf'
+                                          ? Icons.picture_as_pdf_rounded
+                                          : Icons.image_rounded)
+                                    : Icons.cloud_upload_outlined,
+                                color: colorScheme.primary,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _pickedFile != null
+                                        ? _pickedFile!.name
+                                        : 'Select Fayda ID / Document',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _pickedFile != null
+                                        ? '${((_pickedFile!.length as int) / (1024 * 1024)).toStringAsFixed(2)} MB • Tap to replace'
+                                        : 'Tap to choose file (PDF, JPG, PNG)',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.hintColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (_pickedFile != null)
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded),
+                                color: colorScheme.error,
+                                onPressed: () {
+                                  setState(() {
+                                    _pickedFile = null;
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
                     // Key rules summary
                     Container(
@@ -344,8 +481,11 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.info_outline_rounded,
-                                  color: colorScheme.primary, size: 20),
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: colorScheme.primary,
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Member Commitments',
@@ -361,11 +501,11 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                             theme,
                           ),
                           _bulletItem(
-                            'One-time registration fee on approval.',
+                            'Confidentiality: Accurate identification and contact details required.',
                             theme,
                           ),
                           _bulletItem(
-                            'Eligible for member loans after 2 months active savings.',
+                            'Eligible for member loans after active savings verification.',
                             theme,
                           ),
                         ],
@@ -376,7 +516,8 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                     // Agreement Checkbox
                     CheckboxListTile(
                       value: _agreeToRules,
-                      onChanged: (val) => setState(() => _agreeToRules = val ?? false),
+                      onChanged: (val) =>
+                          setState(() => _agreeToRules = val ?? false),
                       title: Text(
                         'I have read and agree to the Unity Finance Group Savings & Lending Rules.',
                         style: theme.textTheme.bodySmall,
