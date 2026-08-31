@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ufg/core/constants/app_images.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
@@ -39,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
@@ -164,6 +165,35 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _input({
+  required TextEditingController controller,
+  required String label,
+  required IconData icon,
+  TextInputType? keyboardType,
+  bool obscureText = false,
+  Widget? suffix,
+}) => TextField(
+  controller: controller,
+  keyboardType: keyboardType,
+  obscureText: obscureText,
+  decoration: InputDecoration(
+    labelText: label,
+    labelStyle:  TextStyle(color: Theme.of(context).colorScheme.primary),
+    prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
+    suffixIcon: suffix,
+    filled: true,
+    fillColor: Theme.of(context).colorScheme.inverseSurface,
+    border: _border(),
+    enabledBorder: _border(),
+    focusedBorder: _border(Theme.of(context).colorScheme.primary),
+  ),
+);
+OutlineInputBorder _border([Color color = Colors.transparent]) =>
+    OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSizes.fieldRadius),
+      borderSide: BorderSide(color: color, width: 1.4),
+    );
+
   void _login() {
     if (_emailController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
@@ -221,7 +251,7 @@ class _LogoLockup extends StatelessWidget {
             BoxShadow(color: Color(0x16000000), blurRadius: 14),
           ],
         ),
-        child: Image.asset('assets/images/logo.png'),
+        child: Image.asset(AllImages().logo),
       ),
       const SizedBox(width: 12),
       Text(
@@ -258,35 +288,7 @@ class _AuthCard extends StatelessWidget {
   );
 }
 
-Widget _input({
-  required TextEditingController controller,
-  required String label,
-  required IconData icon,
-  TextInputType? keyboardType,
-  bool obscureText = false,
-  Widget? suffix,
-   context,
-}) => TextField(
-  controller: controller,
-  keyboardType: keyboardType,
-  obscureText: obscureText,
-  decoration: InputDecoration(
-    labelText: label,
-    labelStyle:  TextStyle(color: Theme.of(context).colorScheme.primary),
-    prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
-    suffixIcon: suffix,
-    filled: true,
-    fillColor: Theme.of(context).colorScheme.surface,
-    border: _border(),
-    enabledBorder: _border(),
-    focusedBorder: _border(Theme.of(context).colorScheme.primary),
-  ),
-);
-OutlineInputBorder _border([Color color = Colors.transparent]) =>
-    OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppSizes.fieldRadius),
-      borderSide: BorderSide(color: color, width: 1.4),
-    );
+
 
 class _Loader extends StatelessWidget {
   const _Loader();

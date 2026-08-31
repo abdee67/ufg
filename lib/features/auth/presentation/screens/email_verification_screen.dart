@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ufg/core/constants/app_images.dart';
 import 'dart:async';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
@@ -110,10 +111,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(
-                        'assets/images/logo.png', // Add your own asset
-                        height: 120,
-                      ),
+                      Image.asset(AllImages().logo, height: 120),
                       const SizedBox(height: 20),
                       Text(
                         'Verify Your Email',

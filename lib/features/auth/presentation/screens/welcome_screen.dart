@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:ufg/core/constants/app_images.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -101,11 +102,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       Hero(
                         tag: 'app-logo',
                         child:
-                            Image.asset(
-                                  'assets/images/logo.png',
-                                  width: 80,
-                                  height: 80,
-                                )
+                            Container(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: Theme.of(context).primaryColor,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Image.asset(
+                                AllImages().logo,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            )
                                 .animate()
                                 .scale(delay: 300.ms)
                                 .move(
