@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ufg/core/errors/exceptions/auth_exceptions.dart';
 import 'package:ufg/core/errors/failures.dart';
 import 'package:ufg/features/membership/data/datasources/membership_remote_data_source.dart';
@@ -12,11 +13,14 @@ class MembershipRepositoryImpl implements MembershipRepository {
   MembershipRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failures, MembershipApplicationEntity?>> getMyApplication() async {
+  Future<Either<Failures, MembershipApplicationEntity?>>
+  getMyApplication() async {
     try {
       final application = await remoteDataSource.getMyApplication();
       return Right(application);
     } on AuthExceptions catch (e) {
+      return Left(Failures(message: e.message));
+    } on PostgrestException catch (e) {
       return Left(Failures(message: e.message));
     } catch (e) {
       return Left(Failures(message: e.toString()));
@@ -29,6 +33,8 @@ class MembershipRepositoryImpl implements MembershipRepository {
       final member = await remoteDataSource.getMyMemberDetails();
       return Right(member);
     } on AuthExceptions catch (e) {
+      return Left(Failures(message: e.message));
+    } on PostgrestException catch (e) {
       return Left(Failures(message: e.message));
     } catch (e) {
       return Left(Failures(message: e.toString()));
@@ -51,6 +57,8 @@ class MembershipRepositoryImpl implements MembershipRepository {
       );
       return Right(storagePath);
     } on AuthExceptions catch (e) {
+      return Left(Failures(message: e.message));
+    } on StorageException catch (e) {
       return Left(Failures(message: e.message));
     } catch (e) {
       return Left(Failures(message: e.toString()));
@@ -80,10 +88,10 @@ class MembershipRepositoryImpl implements MembershipRepository {
       return Right(application);
     } on AuthExceptions catch (e) {
       return Left(Failures(message: e.message));
+    } on PostgrestException catch (e) {
+      return Left(Failures(message: e.message));
     } catch (e) {
-      // Parse PostgreSQL errors from Supabase RPC
-      final message = _parseSupabaseError(e.toString());
-      return Left(Failures(message: message));
+      return Left(Failures(message: e.toString()));
     }
   }
 
@@ -94,19 +102,10 @@ class MembershipRepositoryImpl implements MembershipRepository {
       return const Right(null);
     } on AuthExceptions catch (e) {
       return Left(Failures(message: e.message));
+    } on PostgrestException catch (e) {
+      return Left(Failures(message: e.message));
     } catch (e) {
       return Left(Failures(message: e.toString()));
     }
-  }
-
-  /// Extract user-facing message from Supabase/PostgreSQL errors.
-  String _parseSupabaseError(String rawError) {
-    // Supabase RPC errors often contain the raised exception message
-    final regExp = RegExp(r'message["\s:]+(.+?)(?:["\s,}]|$)');
-    final match = regExp.firstMatch(rawError);
-    if (match != null && match.group(1) != null) {
-      return match.group(1)!;
-    }
-    return 'An unexpected error occurred. Please try again.';
   }
 }

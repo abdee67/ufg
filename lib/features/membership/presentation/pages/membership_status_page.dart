@@ -123,10 +123,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.secondary,
-                ],
+                colors: [colorScheme.primary, colorScheme.secondary],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -177,7 +174,9 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                           style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         Text(
-                          DateFormat('dd MMM yyyy').format(member.membershipDate),
+                          DateFormat(
+                            'dd MMM yyyy',
+                          ).format(member.membershipDate),
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -263,10 +262,11 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Application #${application.applicationNumber}',
+                      'Application Under Review',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     _statusBadge(status, colorScheme),
                   ],
@@ -319,7 +319,8 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
             subtitle:
                 'Unity Finance authorized staff are verifying your identity document.',
             isDone: isApproved,
-            isActive: status == MembershipApplicationStatus.submitted ||
+            isActive:
+                status == MembershipApplicationStatus.submitted ||
                 status == MembershipApplicationStatus.underReview,
             colorScheme: colorScheme,
             theme: theme,
@@ -361,10 +362,10 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                 style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                 onPressed: () {
                   context.read<MembershipBloc>().add(
-                        CancelMembershipApplicationRequested(
-                          applicationId: application.id,
-                        ),
-                      );
+                    CancelMembershipApplicationRequested(
+                      applicationId: application.id,
+                    ),
+                  );
                 },
               ),
             ),
@@ -471,11 +472,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          color: fg,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -539,10 +536,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall,
-                  ),
+                  Text(subtitle, style: theme.textTheme.bodySmall),
                 ],
               ),
             ),

@@ -26,6 +26,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
 
   // Fayda KYC Document
   PlatformFile? _pickedFile;
+  int _pickedFileSize = 0;
 
   @override
   void initState() {
@@ -71,7 +72,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
 
       if (file != null) {
         // 10MB limit
-        int sizeInByte = await file.length();
+        final int sizeInByte = await file.length();
         const int maxAllowedSize = 10 * 1024 * 1024;
         if (sizeInByte > maxAllowedSize) {
           if (mounted) {
@@ -89,6 +90,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
 
         setState(() {
           _pickedFile = file;
+          _pickedFileSize = sizeInByte;
         });
       }
     } catch (e) {
@@ -157,7 +159,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
     }
 
     final mimeType = _determineMimeType(_pickedFile!.name);
-    final int fileSize = _pickedFile!.length() as int;
+    final int fileSize = _pickedFileSize;
 
     context.read<MembershipBloc>().add(
       SubmitMembershipApplicationRequested(
@@ -441,7 +443,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                                   const SizedBox(height: 4),
                                   Text(
                                     _pickedFile != null
-                                        ? '${((_pickedFile!.length as int) / (1024 * 1024)).toStringAsFixed(2)} MB • Tap to replace'
+                                        ? '${(_pickedFileSize / (1024 * 1024)).toStringAsFixed(2)} MB • Tap to replace'
                                         : 'Tap to choose file (PDF, JPG, PNG)',
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.hintColor,
@@ -457,6 +459,7 @@ class _MembershipApplicationPageState extends State<MembershipApplicationPage> {
                                 onPressed: () {
                                   setState(() {
                                     _pickedFile = null;
+                                    _pickedFileSize = 0;
                                   });
                                 },
                               ),
