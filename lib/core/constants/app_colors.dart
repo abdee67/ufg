@@ -1,35 +1,22 @@
 import 'package:flutter/material.dart';
 
-Color hexToColor(String hex) {
-  assert(
-    RegExp(r'^#([0-9a-fA-F]{6})|([0-9a-fA-F]{8})$').hasMatch(hex),
-    'hex color must be #rrggbb or #rrggbbaa',
-  );
-
-  return Color(
-    int.parse(hex.substring(1), radix: 16) +
-        (hex.length == 7 ? 0xff000000 : 0x00000000),
-  );
-}
-
 class ColorConstants {
-  static Color lightScaffoldBackgroundColor = hexToColor('#F9F9F9');
-  static Color darkScaffoldBackgroundColor = hexToColor('#2F2E2E');
-  static Color secondaryAppColor = hexToColor('#5E92F3');
-  static Color secondaryDarkAppColor = Colors.white;
-  static const paper = Color(0xFFFFF8F2);
-  static const surface = Colors.white;
-  static const ink = Color(0xFF2E2420);
-  static const black = Color(0xFF000000);
-  static const muted = Color(0xFF78665F);
-  static const clay = Color(0xFF9F624F);
-  static const burgundy = Color(0xFF72175B);
-  static const rose = Color(0xFFE9B7A6);
-  static const field = Color(0xFFFFF1EA);
-  static const border = Color(0xFFF0D6C9);
-  static const peach = Color(0xFFFFE5D2);
-  static const blush = Color(0xFFF4DDD1);
-  static const sage = Color(0xFF70866D);
-  static const successSurface = Color(0xFFEAF0E5);
-  static const error = Color(0xFF9B3A32);
+  static const navyBlue = Color(0xFF0B315B);
+  static const brandGreen = Color(0xFF078536);
+
+  static const lightScaffoldBackgroundColor = Color(0xFFF5F7FA);
+  static const darkScaffoldBackgroundColor = Color(0xFF0A1F36);
+  static const surfaceLight = Colors.white;
+  static const surfaceDark = Color(0xFF0F2847);
+
+  static const textPrimaryLight = Color(0xFF0B315B);
+  static const textSecondaryLight = Color(0xFF4A5568);
+  static const textPrimaryDark = Colors.white;
+  static const textSecondaryDark = Color(0xFFB0C4DE);
+
+  static const accent = brandGreen;
+  static const error = Color(0xFFD32F2F);
+  static const success = Color(0xFF078536);
+  static const dividerLight = Color(0xFFE2E8F0);
+  static const dividerDark = Color(0xFF1E3A5F);
 }

@@ -7,29 +7,29 @@ class ThemeConfig {
   static ThemeData get darkTheme => createTheme(
     brightness: Brightness.dark,
     background: ColorConstants.darkScaffoldBackgroundColor,
-    cardBackground: ColorConstants.secondaryDarkAppColor,
-    primaryText: Colors.white,
-    secondaryText: Colors.black,
-    accentColor: ColorConstants.secondaryDarkAppColor,
-    divider: Colors.black45,
-    buttonBackground: Colors.white,
-    buttonText: ColorConstants.secondaryDarkAppColor,
-    disabled: ColorConstants.secondaryDarkAppColor,
-    error: Colors.red,
+    cardBackground: ColorConstants.surfaceDark,
+    primaryText: ColorConstants.textPrimaryDark,
+    secondaryText: ColorConstants.textSecondaryDark,
+    accentColor: ColorConstants.accent,
+    divider: ColorConstants.dividerDark,
+    buttonBackground: ColorConstants.brandGreen,
+    buttonText: Colors.white,
+    disabled: ColorConstants.dividerDark,
+    error: ColorConstants.error,
   );
 
   static ThemeData get lightTheme => createTheme(
     brightness: Brightness.light,
     background: ColorConstants.lightScaffoldBackgroundColor,
-    cardBackground: ColorConstants.secondaryAppColor,
-    primaryText: Colors.black,
-    secondaryText: Colors.white,
-    accentColor: ColorConstants.secondaryAppColor,
-    divider: ColorConstants.secondaryAppColor,
-    buttonBackground: Colors.black38,
-    buttonText: ColorConstants.secondaryAppColor,
-    disabled: ColorConstants.secondaryAppColor,
-    error: Colors.red,
+    cardBackground: ColorConstants.surfaceLight,
+    primaryText: ColorConstants.textPrimaryLight,
+    secondaryText: ColorConstants.textSecondaryLight,
+    accentColor: ColorConstants.accent,
+    divider: ColorConstants.dividerLight,
+    buttonBackground: ColorConstants.brandGreen,
+    buttonText: Colors.white,
+    disabled: ColorConstants.dividerLight,
+    error: ColorConstants.error,
   );
 
   static ThemeData createTheme({
@@ -45,14 +45,10 @@ class ThemeConfig {
     required Color disabled,
     required Color error,
   }) {
-    final baseTextTheme = brightness == Brightness.dark
-        ? Typography.blackMountainView
-        : Typography.whiteMountainView;
-
     return ThemeData(
       brightness: brightness,
       canvasColor: background,
-      cardColor: background,
+      cardColor: cardBackground,
       dividerColor: divider,
       dividerTheme: DividerThemeData(color: divider, space: 1, thickness: 1),
       cardTheme: CardThemeData(
@@ -65,45 +61,45 @@ class ThemeConfig {
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18.0),
-              side: BorderSide(color: Colors.red),
             ),
           ),
           padding: WidgetStateProperty.all<EdgeInsets>(
             const EdgeInsets.all(16),
           ),
+          backgroundColor: WidgetStateProperty.all<Color>(buttonBackground),
+          foregroundColor: WidgetStateProperty.all<Color>(buttonText),
         ),
       ),
       primaryColor: accentColor,
-      // var toggleableActiveColor: accentColor,
       appBarTheme: AppBarThemeData(
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarBrightness: brightness,
         ),
         backgroundColor: cardBackground,
-        iconTheme: IconThemeData(color: secondaryText),
+        iconTheme: IconThemeData(color: primaryText),
         toolbarTextStyle: TextTheme(
-          bodyLarge: baseTextTheme.bodyLarge?.copyWith(
-            color: secondaryText,
+          bodyLarge: TextStyle(
+            color: primaryText,
             fontSize: 18,
           ),
         ).bodyMedium,
         titleTextStyle: TextTheme(
-          bodyLarge: baseTextTheme.bodyLarge?.copyWith(
-            color: secondaryText,
+          bodyLarge: TextStyle(
+            color: primaryText,
             fontSize: 18,
           ),
         ).titleLarge,
       ),
-      iconTheme: IconThemeData(color: secondaryText, size: 16.0),
+      iconTheme: IconThemeData(color: primaryText, size: 16.0),
       colorScheme: ColorScheme(
         brightness: brightness,
         primary: accentColor,
-        secondary: accentColor,
-        surface: background,
+        secondary: ColorConstants.navyBlue,
+        surface: cardBackground,
         error: error,
         onPrimary: buttonText,
         onSecondary: buttonText,
-        onSurface: buttonText,
+        onSurface: primaryText,
         onError: buttonText,
       ),
       buttonTheme: ButtonThemeData(
@@ -111,12 +107,12 @@ class ThemeConfig {
         colorScheme: ColorScheme(
           brightness: brightness,
           primary: accentColor,
-          secondary: accentColor,
-          surface: background,
+          secondary: ColorConstants.navyBlue,
+          surface: cardBackground,
           error: error,
           onPrimary: buttonText,
           onSecondary: buttonText,
-          onSurface: buttonText,
+          onSurface: primaryText,
           onError: buttonText,
         ),
         padding: const EdgeInsets.all(16.0),
@@ -128,7 +124,6 @@ class ThemeConfig {
       inputDecorationTheme: InputDecorationTheme(
         errorStyle: TextStyle(color: error),
         labelStyle: TextStyle(
-          fontFamily: '',
           fontWeight: FontWeight.w600,
           fontSize: 16.0,
           color: primaryText.withValues(alpha: 0.5),
@@ -139,68 +134,67 @@ class ThemeConfig {
           fontWeight: FontWeight.w300,
         ),
       ),
-      fontFamily: '',
       textTheme: TextTheme(
-        displayLarge: baseTextTheme.displayLarge?.copyWith(
+        displayLarge: TextStyle(
           color: primaryText,
           fontSize: 34.0,
           fontWeight: FontWeight.bold,
         ),
-        displayMedium: baseTextTheme.displayMedium?.copyWith(
+        displayMedium: TextStyle(
           color: primaryText,
           fontSize: 22,
           fontWeight: FontWeight.bold,
         ),
-        displaySmall: baseTextTheme.displaySmall?.copyWith(
+        displaySmall: TextStyle(
           color: secondaryText,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
-        headlineMedium: baseTextTheme.headlineMedium?.copyWith(
+        headlineMedium: TextStyle(
           color: primaryText,
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
-        headlineSmall: baseTextTheme.headlineSmall?.copyWith(
+        headlineSmall: TextStyle(
           color: primaryText,
           fontSize: 16,
           fontWeight: FontWeight.w700,
         ),
-        titleLarge: baseTextTheme.titleLarge?.copyWith(
+        titleLarge: TextStyle(
           color: primaryText,
           fontSize: 14,
           fontWeight: FontWeight.w700,
         ),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+        bodyLarge: TextStyle(
           color: secondaryText,
           fontSize: 15,
         ),
-        bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+        bodyMedium: TextStyle(
           color: primaryText,
           fontSize: 12,
           fontWeight: FontWeight.w400,
         ),
-        labelLarge: baseTextTheme.labelLarge?.copyWith(
+        labelLarge: TextStyle(
           color: primaryText,
           fontSize: 12.0,
           fontWeight: FontWeight.w700,
         ),
-        bodySmall: baseTextTheme.bodySmall?.copyWith(
+        bodySmall: TextStyle(
           color: primaryText,
           fontSize: 11.0,
           fontWeight: FontWeight.w300,
         ),
-        labelSmall: baseTextTheme.labelSmall?.copyWith(
+        labelSmall: TextStyle(
           color: secondaryText,
           fontSize: 11.0,
           fontWeight: FontWeight.w500,
         ),
-        titleMedium: baseTextTheme.titleMedium?.copyWith(
+        titleMedium: TextStyle(
           color: primaryText,
           fontSize: 16.0,
           fontWeight: FontWeight.w700,
         ),
-        titleSmall: baseTextTheme.titleSmall?.copyWith(
+        titleSmall: TextStyle(
           color: secondaryText,
           fontSize: 11.0,
           fontWeight: FontWeight.w500,

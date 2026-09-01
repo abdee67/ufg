@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/features/auth/presentation/screens/forgotPassword.dart';
@@ -10,6 +11,15 @@ import 'package:ufg/features/dashboard/dashboard_wrapper.dart';
 import 'package:ufg/features/home/presentation/pages/home_screen.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_application_page.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_status_page.dart';
+import 'package:ufg/features/savings/domain/entities/savings_obligation_entity.dart';
+import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
+import 'package:ufg/features/savings/presentation/pages/savings_history_page.dart';
+import 'package:ufg/features/savings/presentation/pages/savings_obligation_page.dart';
+import 'package:ufg/features/savings/presentation/pages/savings_page.dart';
+import 'package:ufg/features/savings/presentation/pages/savings_payment_page.dart';
+import 'package:ufg/features/savings/presentation/pages/withdrawal_history_page.dart';
+import 'package:ufg/features/savings/presentation/pages/withdrawal_page.dart';
+import 'package:ufg/injection_container.dart';
 
 class AppRouter {
   final bool showOnboarding;
@@ -69,6 +79,54 @@ class AppRouter {
         path: AppRoutes.membershipStatus,
         builder: (_, _) => const MembershipStatusPage(),
       ),
+
+      // =================== Savings Feature Routes ===================
+      GoRoute(
+        path: AppRoutes.savings,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<SavingsBloc>(),
+          child: const SavingsPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.savingsObligations,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<SavingsBloc>(),
+          child: const SavingsObligationPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.savingsHistory,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<SavingsBloc>(),
+          child: const SavingsHistoryPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.savingsWithdraw,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<SavingsBloc>(),
+          child: const WithdrawalPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.savingsWithdrawals,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<SavingsBloc>(),
+          child: const WithdrawalHistoryPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.savingsPayment,
+        builder: (_, state) => BlocProvider(
+          create: (_) => getit<SavingsBloc>(),
+          child: SavingsPaymentPage(
+            obligation: state.extra is SavingsObligationEntity
+                ? state.extra as SavingsObligationEntity
+                : null,
+          ),
+        ),
+      ),
     ],
     errorBuilder: (context, state) {
       return Scaffold(
@@ -95,17 +153,11 @@ class AppRouter {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'erRoR',
+                'Error',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
-              ),
-              Text(
-                '',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
             ],
           ),
@@ -115,4 +167,3 @@ class AppRouter {
     },
   );
 }
-

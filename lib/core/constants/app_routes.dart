@@ -24,5 +24,14 @@ class AppRoutes {
   static const String membershipApply = '/membership/apply';
   static const String membershipStatus = '/membership/status';
   static const String membershipPayment = '/membership/payment';
+
+  // Savings Feature Routes
+  static const String savings = '/savings';
+  static const String savingsObligations = '/savings/obligations';
+  static const String savingsHistory = '/savings/history';
+  static const String savingsWithdraw = '/savings/withdraw';
+  static const String savingsWithdrawals = '/savings/withdrawals';
+  static const String savingsPayment = '/savings/payment';
+
   static const String logout = '/logout';
 }
