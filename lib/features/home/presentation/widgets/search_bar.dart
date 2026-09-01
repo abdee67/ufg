@@ -11,7 +11,7 @@ class SearchBarWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: TextField(
         decoration: InputDecoration(
-          hintText: 'Search services or beauticians...',
+          hintText: 'Search savings, loans, or transactions...',
           prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: Colors.grey.shade100,

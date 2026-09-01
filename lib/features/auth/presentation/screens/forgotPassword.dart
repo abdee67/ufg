@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_images.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
@@ -25,8 +26,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is ForgotPasswordSent) {
@@ -40,7 +44,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           final isLoading = state is AuthLoading;
           return Stack(
             children: [
-              const _ResetBackground(),
+              _ResetBackground(colorScheme: colorScheme),
               SafeArea(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
@@ -54,16 +58,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         IconButton(
                           onPressed: () => context.go(AppRoutes.loginScreen),
                           icon: const Icon(Icons.arrow_back_rounded),
-                          color: Theme.of(context).colorScheme.primary,
+                          color: colorScheme.primary,
                           tooltip: 'Back to login',
                         ),
                         const SizedBox(height: 26),
-                        const _BrandMark(),
+                        _BrandMark(colorScheme: colorScheme),
                         const SizedBox(height: 30),
                         Text(
                           'Forgot your\npassword?',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: colorScheme.primary,
                             fontSize: 36,
                             height: 1.08,
                             fontWeight: FontWeight.w800,
@@ -71,9 +75,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          'Enter your email and we’ll send a secure code to help you get back into your account.',
+                          'Enter your email and we\'ll send a secure code to help you get back into your account.',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: theme.textTheme.bodyLarge?.color,
                             fontSize: 16,
                             height: 1.5,
                           ),
@@ -82,14 +86,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.92),
+                            color: colorScheme.surface.withValues(alpha: 0.92),
                             borderRadius: BorderRadius.circular(28),
-                            border: Border.all(color: const Color(0xFFF0D6C9)),
-                            boxShadow: const [
+                            border: Border.all(color: theme.dividerColor),
+                            boxShadow: [
                               BoxShadow(
-                                color: Color(0x14000000),
+                                color: Colors.black.withValues(alpha: 0.08),
                                 blurRadius: 28,
-                                offset: Offset(0, 12),
+                                offset: const Offset(0, 12),
                               ),
                             ],
                           ),
@@ -99,7 +103,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               Text(
                                 'Email address',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: colorScheme.primary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -113,19 +117,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 onSubmitted: (_) => _sendResetCode(),
                                 decoration: InputDecoration(
                                   hintText: 'you@example.com',
-                                  hintStyle: const TextStyle(
-                                    color: Color(0xFFAA988D),
-                                  ),
                                   prefixIcon: Icon(
                                     Icons.mail_outline_rounded,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: colorScheme.primary,
                                   ),
                                   filled: true,
-                                  fillColor: Theme.of(context).colorScheme.primary,
+                                  fillColor: theme.cardColor,
                                   border: _fieldBorder(),
                                   enabledBorder: _fieldBorder(),
                                   focusedBorder: _fieldBorder(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: colorScheme.primary,
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 18,
@@ -140,9 +141,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 child: ElevatedButton(
                                   onPressed: isLoading ? null : _sendResetCode,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Theme.of(context).colorScheme.primary,
+                                    backgroundColor: colorScheme.primary,
                                     foregroundColor: Colors.white,
-                                    disabledBackgroundColor: Theme.of(context).colorScheme.primary,
+                                    disabledBackgroundColor: colorScheme.primary.withValues(alpha: 0.5),
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(18),
@@ -173,10 +174,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         Center(
                           child: TextButton(
                             onPressed: () => context.go(AppRoutes.loginScreen),
-                            child:  Text(
+                            child: Text(
                               'Back to sign in',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: colorScheme.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -214,7 +215,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? const Color(0xFF9B3A32) : Theme.of(context).colorScheme.primary,
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -222,7 +225,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 }
 
 class _ResetBackground extends StatelessWidget {
-  const _ResetBackground();
+  const _ResetBackground({required this.colorScheme});
+  final ColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
@@ -235,8 +239,8 @@ class _ResetBackground extends StatelessWidget {
             child: Container(
               width: 280,
               height: 280,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFE5D2),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
             ),
@@ -247,8 +251,8 @@ class _ResetBackground extends StatelessWidget {
             child: Container(
               width: 250,
               height: 250,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF4DDD1),
+              decoration: BoxDecoration(
+                color: ColorConstants.navyBlue.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
             ),
@@ -260,7 +264,8 @@ class _ResetBackground extends StatelessWidget {
 }
 
 class _BrandMark extends StatelessWidget {
-  const _BrandMark();
+  const _BrandMark({required this.colorScheme});
+  final ColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
@@ -273,17 +278,20 @@ class _BrandMark extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
-            boxShadow: const [
-              BoxShadow(color: Color(0x16000000), blurRadius: 14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 14,
+              ),
             ],
           ),
           child: Image.asset(AllImages().logo),
         ),
         const SizedBox(width: 12),
-        const Text(
-          'URS Beauty',
+        Text(
+          'Unity Finance',
           style: TextStyle(
-            color: Color(0xFF2E2420),
+            color: colorScheme.primary,
             fontWeight: FontWeight.w800,
             fontSize: 18,
           ),

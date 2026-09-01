@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_images.dart';
+import 'package:ufg/core/constants/app_routes.dart';
 import 'dart:async';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
@@ -56,18 +58,24 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.pink[50],
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is OtpVerified) {
-            context.go('/home');
-            widget.onVerified?.call();
+            if (widget.onVerified != null) {
+              widget.onVerified!();
+            } else {
+              context.go(AppRoutes.membershipApply);
+            }
           } else if (state is OtpSent) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text('New code sent to your email!'),
-                backgroundColor: Colors.purple[600],
+                backgroundColor: colorScheme.primary,
               ),
             );
             _startCountdown();
@@ -75,7 +83,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red[400],
+                backgroundColor: colorScheme.error,
               ),
             );
           }
@@ -86,7 +94,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.pink[100]!, Colors.purple[100]!],
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.05),
+                  theme.scaffoldBackgroundColor,
+                ],
               ),
             ),
             child: Center(
@@ -98,11 +109,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     vertical: 40,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.purple.withValues(alpha: 0.1),
+                        color: colorScheme.primary.withValues(alpha: 0.1),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -118,20 +129,22 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.purple[800],
-                          fontFamily: 'PlayfairDisplay',
+                          color: colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'We sent a 6-digit code to:',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                        'We sent a 8-digit code to:',
+                        style: TextStyle(
+                          color: theme.textTheme.bodyMedium?.color,
+                          fontSize: 16,
+                        ),
                       ),
                       const SizedBox(height: 5),
                       Text(
                         widget.email,
                         style: TextStyle(
-                          color: Colors.purple[600],
+                          color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -147,10 +160,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                 labelText: 'Verification Code',
                                 prefixIcon: Icon(
                                   Icons.verified_user,
-                                  color: Colors.purple[300],
+                                  color: colorScheme.primary,
                                 ),
                                 filled: true,
-                                fillColor: Colors.pink[50],
+                                fillColor: theme.cardColor,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20),
                                   borderSide: BorderSide.none,
@@ -158,13 +171,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                 counterText: '',
                               ),
                               keyboardType: TextInputType.number,
-                              maxLength: 6,
+                              maxLength: 8,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter the verification code';
                                 }
-                                if (value.length != 6) {
-                                  return 'Code must be 6 digits';
+                                if (value.length != 8) {
+                                  return 'Code must be 8 digits';
                                 }
                                 return null;
                               },
@@ -177,8 +190,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                   _message!,
                                   style: TextStyle(
                                     color: _message!.contains('failed')
-                                        ? Colors.red[400]
-                                        : Colors.green[400],
+                                        ? colorScheme.error
+                                        : ColorConstants.brandGreen,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -198,7 +211,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.purple[600],
+                                  backgroundColor: colorScheme.primary,
+                                  foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
                                   ),
@@ -233,18 +247,18 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                     : 'Resend in $_countdown seconds',
                                 style: TextStyle(
                                   color: _countdown == 0
-                                      ? Colors.purple[600]
-                                      : Colors.grey[400],
+                                      ? colorScheme.primary
+                                      : theme.hintColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                             const SizedBox(height: 10),
                             TextButton(
-                              onPressed: () => context.go('/login'),
+                              onPressed: () => context.go(AppRoutes.loginScreen),
                               child: Text(
                                 'Back to Login',
-                                style: TextStyle(color: Colors.purple[600]),
+                                style: TextStyle(color: colorScheme.primary),
                               ),
                             ),
                           ],

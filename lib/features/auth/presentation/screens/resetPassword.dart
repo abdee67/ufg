@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:otp_text_field/otp_text_field.dart';
+import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
@@ -33,11 +34,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isLoading = context.select<AuthBloc, bool>(
       (bloc) => bloc.state is AuthLoading,
     );
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is PasswordResetOtpVerified) {
@@ -51,7 +54,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         },
         child: Stack(
           children: [
-            const _PasswordResetBackground(),
+            _PasswordResetBackground(colorScheme: colorScheme),
             SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
@@ -66,26 +69,30 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         onPressed: () =>
                             context.go(AppRoutes.forgotPasswordScreen),
                         icon: const Icon(Icons.arrow_back_rounded),
-                        color: Theme.of(context).colorScheme.primary,
+                        color: colorScheme.primary,
                         tooltip: 'Back',
                       ),
                       const SizedBox(height: 20),
-                      _ProgressIndicator(isPasswordStep: _isOtpVerified),
+                      _ProgressIndicator(
+                        isPasswordStep: _isOtpVerified,
+                        colorScheme: colorScheme,
+                        theme: theme,
+                      ),
                       const SizedBox(height: 34),
                       Container(
                         width: 62,
                         height: 62,
                         decoration: BoxDecoration(
                           color: _isOtpVerified
-                              ? const Color(0xFFEAF0E5)
-                              : const Color(0xFFFFE6D8),
+                              ? ColorConstants.brandGreen.withValues(alpha: 0.1)
+                              : colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(21),
                         ),
                         child: Icon(
                           _isOtpVerified
                               ? Icons.lock_reset_rounded
                               : Icons.mark_email_read_outlined,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: colorScheme.primary,
                           size: 31,
                         ),
                       ),
@@ -95,7 +102,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ? 'Create a new\npassword'
                             : 'Check your\nemail',
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                          color: theme.textTheme.bodyLarge?.color,
                           fontSize: 36,
                           height: 1.08,
                           fontWeight: FontWeight.w800,
@@ -107,13 +114,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ? 'Choose a strong password that you do not use elsewhere.'
                             : 'We sent a 6-digit verification code to ${widget.email}.',
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                          color: theme.textTheme.bodyLarge?.color,
                           fontSize: 16,
                           height: 1.5,
                         ),
                       ),
                       const SizedBox(height: 34),
-                      _buildForm(isLoading),
+                      _buildForm(isLoading, theme, colorScheme),
                       const SizedBox(height: 28),
                       if (!_isOtpVerified)
                         Center(
@@ -126,7 +133,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             child: Text(
                               'Use a different email address',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: colorScheme.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -143,18 +150,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 
-  Widget _buildForm(bool isLoading) {
+  Widget _buildForm(bool isLoading, ThemeData theme, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        color: colorScheme.surface.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFF0D6C9)),
-        boxShadow: const [
+        border: Border.all(color: theme.dividerColor),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x14000000),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 28,
-            offset: Offset(0, 12),
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -165,7 +172,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             Text(
               'Verification code',
               style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
+                color: theme.textTheme.bodyLarge?.color,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
@@ -177,7 +184,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               textFieldAlignment: MainAxisAlignment.spaceBetween,
               fieldWidth: 42,
               style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
+                color: theme.textTheme.bodyLarge?.color,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
@@ -187,7 +194,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             Text(
               'The code expires shortly for your security.',
               style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
+                color: theme.textTheme.bodyLarge?.color,
                 fontSize: 13,
               ),
             ),
@@ -199,6 +206,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               onVisibilityChanged: () {
                 setState(() => _obscurePassword = !_obscurePassword);
               },
+              theme: theme,
+              colorScheme: colorScheme,
             ),
             const SizedBox(height: 16),
             _passwordField(
@@ -208,6 +217,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               onVisibilityChanged: () {
                 setState(() => _obscureConfirmation = !_obscureConfirmation);
               },
+              theme: theme,
+              colorScheme: colorScheme,
             ),
           ],
           const SizedBox(height: 24),
@@ -217,9 +228,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             child: ElevatedButton(
               onPressed: isLoading ? null : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: colorScheme.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Theme.of(context).colorScheme.secondary,
+                disabledBackgroundColor: colorScheme.primary.withValues(alpha: 0.5),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
@@ -253,21 +264,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     required String label,
     required bool obscureText,
     required VoidCallback onVisibilityChanged,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      autofillHints: label.startsWith('Confirm')
-          ? const [AutofillHints.newPassword]
-          : const [AutofillHints.newPassword],
+      autofillHints: const [AutofillHints.newPassword],
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: Theme.of(context).textTheme.bodyLarge?.color,
+          color: theme.textTheme.bodyLarge?.color,
         ),
         prefixIcon: Icon(
           Icons.lock_outline_rounded,
-          color: Theme.of(context).colorScheme.primary,
+          color: colorScheme.primary,
         ),
         suffixIcon: IconButton(
           onPressed: onVisibilityChanged,
@@ -275,14 +286,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             obscureText
                 ? Icons.visibility_off_outlined
                 : Icons.visibility_outlined,
-            color: Theme.of(context).textTheme.bodyLarge?.color,
+            color: theme.textTheme.bodyLarge?.color,
           ),
         ),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.secondary,
+        fillColor: theme.cardColor,
         border: _fieldBorder(),
         enabledBorder: _fieldBorder(),
-        focusedBorder: _fieldBorder(color: Theme.of(context).colorScheme.primary),
+        focusedBorder: _fieldBorder(color: colorScheme.primary),
       ),
     );
   }
@@ -326,7 +337,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? const Color(0xFF9B3A32) : Theme.of(context).colorScheme.primary,
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -334,9 +347,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 }
 
 class _ProgressIndicator extends StatelessWidget {
-  const _ProgressIndicator({required this.isPasswordStep});
+  const _ProgressIndicator({
+    required this.isPasswordStep,
+    required this.colorScheme,
+    required this.theme,
+  });
 
   final bool isPasswordStep;
+  final ColorScheme colorScheme;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
@@ -348,8 +367,8 @@ class _ProgressIndicator extends StatelessWidget {
             height: 2,
             margin: const EdgeInsets.symmetric(horizontal: 10),
             color: isPasswordStep
-                ? const Color(0xFF9F624F)
-                : const Color(0xFFF0D6C9),
+                ? colorScheme.primary
+                : theme.dividerColor,
           ),
         ),
         _step('2', 'Reset', isActive: isPasswordStep),
@@ -372,14 +391,14 @@ class _ProgressIndicator extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: highlighted
-                ? const Color(0xFF9F624F)
-                : const Color(0xFFF0D6C9),
+                ? colorScheme.primary
+                : theme.dividerColor,
             shape: BoxShape.circle,
           ),
           child: Text(
-            isComplete ? '✓' : number,
+            isComplete ? '\u2713' : number,
             style: TextStyle(
-              color: highlighted ? Colors.white : const Color(0xFF78665F),
+              color: highlighted ? Colors.white : theme.hintColor,
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
@@ -390,8 +409,8 @@ class _ProgressIndicator extends StatelessWidget {
           label,
           style: TextStyle(
             color: highlighted
-                ? const Color(0xFF2E2420)
-                : const Color(0xFF78665F),
+                ? theme.textTheme.bodyLarge?.color
+                : theme.hintColor,
             fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
@@ -402,7 +421,8 @@ class _ProgressIndicator extends StatelessWidget {
 }
 
 class _PasswordResetBackground extends StatelessWidget {
-  const _PasswordResetBackground();
+  const _PasswordResetBackground({required this.colorScheme});
+  final ColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
@@ -415,8 +435,8 @@ class _PasswordResetBackground extends StatelessWidget {
             child: Container(
               width: 275,
               height: 275,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFE5D2),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
             ),
@@ -427,8 +447,8 @@ class _PasswordResetBackground extends StatelessWidget {
             child: Container(
               width: 260,
               height: 260,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF4DDD1),
+              decoration: BoxDecoration(
+                color: ColorConstants.navyBlue.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
             ),

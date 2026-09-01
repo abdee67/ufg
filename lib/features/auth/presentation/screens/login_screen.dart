@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
-            context.go(AppRoutes.homeScreen);
+            context.go(AppRoutes.membershipStatus);
           } else if (state is AuthLoggedOut) {
             setState(() => _isCheckingSession = false);
           } else if (state is AuthFailure) {
@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Sign in to continue your beauty journey.',
+                      'Sign in to continue your financial journey with Unity Finance.',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 16,
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: TextButton(
                         onPressed: () => context.go(AppRoutes.signupScreen),
                         child:  Text(
-                          'New to URS Beauty?  Create an account',
+                          'New to Unity Finance?  Create an account',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.w700,
@@ -255,7 +255,7 @@ class _LogoLockup extends StatelessWidget {
       ),
       const SizedBox(width: 12),
       Text(
-        'URS Beauty',
+        'Unity Finance',
         style: TextStyle(
           color: Theme.of(context).colorScheme.primary,
           fontSize: 18,

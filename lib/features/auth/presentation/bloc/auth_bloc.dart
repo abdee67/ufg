@@ -18,9 +18,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SendOtp sendOtp;
   final VerifyOTP verifyOTP;
   final VerifyPasswordResetOtp verifyPasswordResetOtp;
-//  final GetCurrentLocationAddress getCurrentLocationAddress;
- // final GetCurrentCustomer getCurrentCustomer;
- // final UpdateCustomerProfile updateCustomerProfile;
+  //  final GetCurrentLocationAddress getCurrentLocationAddress;
+  // final GetCurrentCustomer getCurrentCustomer;
+  // final UpdateCustomerProfile updateCustomerProfile;
   final ForgotPassword forgotPassword;
   final ResetPassword resetPassword;
   final CheckStartupSession checkStartupSession;
@@ -31,9 +31,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     this.sendOtp,
     this.verifyOTP,
     this.verifyPasswordResetOtp,
-   // this.getCurrentLocationAddress,
-   // this.getCurrentCustomer,
-   // this.updateCustomerProfile,
+    // this.getCurrentLocationAddress,
+    // this.getCurrentCustomer,
+    // this.updateCustomerProfile,
     this.forgotPassword,
     this.resetPassword,
     this.checkStartupSession,
@@ -82,22 +82,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         (_) => emit(AuthLoggedOut()),
       );
     });
- /*on<AutoFillCurrentLocationAddressRequested>((event, emit) async {
-      emit(AuthAddressLoading());
-      final result = await getCurrentLocationAddress();
-      result.fold(
-        (failure) => emit(AuthFailure(failure.message)),
-        (address) => emit(AuthAddressAutofilled(address)),
-      );
-    });*/
-   /* on<SendOtpRequested>((event, emit) async {
+    on<SendOtpRequested>((event, emit) async {
       emit(AuthLoading());
       final result = await sendOtp(event.email);
       result.fold(
         (failure) => emit(AuthFailure(failure.message)),
         (_) => emit(OtpSent()),
       );
-    });*/
+    });
 
     on<VerifyOtpRequested>((event, emit) async {
       emit(AuthLoading());

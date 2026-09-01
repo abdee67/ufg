@@ -267,11 +267,13 @@ class _SignupScreenState extends State<SignupScreen> {
           onVerified: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Account created successfully!'),
+                content: Text(
+                  'Account verified! Please complete your membership application.',
+                ),
                 behavior: SnackBarBehavior.floating,
               ),
             );
-            context.go(AppRoutes.homeScreen);
+            context.go(AppRoutes.membershipApply);
           },
         ),
       );

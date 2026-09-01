@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ufg/core/constants/app_colors.dart';
 
 class GreetingHeader extends StatefulWidget {
   const GreetingHeader({super.key});
@@ -58,21 +59,20 @@ class _GreetingHeaderState extends State<GreetingHeader>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF6C5CE7),
-                    Color(0xFFA855F7),
-                    Color(0xFF636E72),
+                    ColorConstants.navyBlue,
+                    ColorConstants.brandGreen,
                   ],
-                  stops: [0.0, 0.5, 1.0],
+                  stops: [0.0, 1.0],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6C5CE7).withValues(alpha: 0.3),
+                    color: ColorConstants.navyBlue.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
                   BoxShadow(
-                    color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                    color: ColorConstants.brandGreen.withValues(alpha: 0.2),
                     blurRadius: 30,
                     offset: const Offset(0, 15),
                   ),
@@ -80,7 +80,6 @@ class _GreetingHeaderState extends State<GreetingHeader>
               ),
               child: Stack(
                 children: [
-                  // Decorative elements
                   Positioned(
                     top: -20,
                     right: -20,
@@ -105,7 +104,6 @@ class _GreetingHeaderState extends State<GreetingHeader>
                       ),
                     ),
                   ),
-                  // Main content
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -151,8 +149,7 @@ class _GreetingHeaderState extends State<GreetingHeader>
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: IconButton(
-                              onPressed: () {
-                              },
+                              onPressed: () {},
                               icon: const Icon(
                                 Icons.refresh_rounded,
                                 color: Colors.white,
@@ -165,7 +162,7 @@ class _GreetingHeaderState extends State<GreetingHeader>
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Urs Beauty',
+                        'Unity Finance',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -188,13 +185,13 @@ class _GreetingHeaderState extends State<GreetingHeader>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.spa_rounded,
+                              Icons.savings_rounded,
                               color: Colors.white,
                               size: 16,
                             ),
                             SizedBox(width: 6),
                             Text(
-                              '✨ Discover your perfect beauty experience',
+                              'Save. Borrow. Grow together.',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white,
@@ -209,20 +206,20 @@ class _GreetingHeaderState extends State<GreetingHeader>
                         children: [
                           _QuickStat(
                             icon: Icons.verified_rounded,
-                            label: 'Verified Pros',
+                            label: 'Active Members',
                             value: '100+',
                           ),
                           const SizedBox(width: 12),
                           _QuickStat(
-                            icon: Icons.star_rounded,
-                            label: '5-Star Rating',
-                            value: '4.9',
+                            icon: Icons.trending_up_rounded,
+                            label: 'Total Savings',
+                            value: 'ETB 1M+',
                           ),
                           const SizedBox(width: 12),
                           _QuickStat(
-                            icon: Icons.people_rounded,
-                            label: 'Happy Clients',
-                            value: '10K+',
+                            icon: Icons.handshake_rounded,
+                            label: 'Loans Disbursed',
+                            value: '500+',
                           ),
                         ],
                       ),
