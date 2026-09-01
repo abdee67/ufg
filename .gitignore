@@ -48,3 +48,8 @@ app.*.map.json
 
 #plans
 .unity_
+
+# Private implementation prompts (not project docs)
+*_Implementation_Prompt.md
+Unity_Finance_*_Implementation_Prompt.md
+UFG_*_Implementation_Prompt.md
