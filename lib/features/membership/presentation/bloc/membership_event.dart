@@ -27,3 +27,8 @@ class CancelMembershipApplicationRequested extends MembershipEvent {
 
   CancelMembershipApplicationRequested({required this.applicationId});
 }
+
+/// Fired by LoginScreen and SessionCheckingSplash after auth is confirmed.
+/// The MembershipBloc loads the membership status and emits
+/// [MembershipRouteReady] with the resolved destination route.
+class CheckMembershipAfterAuthRequested extends MembershipEvent {}

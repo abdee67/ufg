@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/features/membership/domain/usecases/cancel_membership_application.dart';
 import 'package:ufg/features/membership/domain/usecases/get_membership_status.dart';
 import 'package:ufg/features/membership/domain/usecases/submit_membership_application.dart';
@@ -21,6 +22,7 @@ class MembershipBloc extends Bloc<MembershipEvent, MembershipState> {
     on<LoadMembershipStatusRequested>(_onLoadStatus);
     on<SubmitMembershipApplicationRequested>(_onSubmit);
     on<CancelMembershipApplicationRequested>(_onCancel);
+    on<CheckMembershipAfterAuthRequested>(_onCheckMembershipAfterAuth);
   }
 
   Future<void> _onLoadStatus(
@@ -94,6 +96,33 @@ class MembershipBloc extends Bloc<MembershipEvent, MembershipState> {
       (_) => emit(const MembershipOperationSuccess(
         message: 'Membership application cancelled successfully.',
       )),
+    );
+  }
+
+  /// Resolves the membership status after authentication is confirmed and
+  /// emits [MembershipRouteReady] with the destination route. The UI
+  /// (LoginScreen / SessionCheckingSplash) simply listens and navigates.
+  Future<void> _onCheckMembershipAfterAuth(
+    CheckMembershipAfterAuthRequested event,
+    Emitter<MembershipState> emit,
+  ) async {
+    emit(MembershipLoading());
+
+    final result = await getMembershipStatus();
+
+    result.fold(
+      (failure) {
+        // If membership check fails, default to membership status page
+        // where the user can see the error and retry.
+        emit(MembershipRouteReady(destinationRoute: AppRoutes.membershipStatus));
+      },
+      (statusResult) {
+        if (statusResult.isActiveMember) {
+          emit(MembershipRouteReady(destinationRoute: AppRoutes.homeScreen));
+        } else {
+          emit(MembershipRouteReady(destinationRoute: AppRoutes.membershipStatus));
+        }
+      },
     );
   }
 }

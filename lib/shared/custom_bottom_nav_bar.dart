@@ -59,27 +59,27 @@ class CustomBottomNavBar extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildNavItem(0, Iconsax.home_1, Iconsax.home, 'Home'),
+                    _buildNavItem(0, Iconsax.home_1, Iconsax.home, 'Main'),
                     _buildNavItem(
                       1,
-                      Icons.room_service_rounded,
-                      Icons.room_service_outlined,
-                      'Services',
+                      Iconsax.bag_2,
+                      Iconsax.bag_2,
+                      'Savings',
                     ),
                     const SizedBox(
                       width: 50,
                     ), // Spacing for the prominent center button
                     _buildNavItem(
                       3,
-                      Icons.chat_bubble_rounded,
-                      Icons.person_2_outlined,
-                      'Stylist',
+                      Icons.group_rounded,
+                      Icons.group_outlined,
+                      'Membership',
                     ),
                     _buildNavItem(
                       4,
-                      Icons.settings_rounded,
-                      Icons.settings_outlined,
-                      'Settings',
+                      Icons.person_rounded,
+                      Icons.person_outlined,
+                      'Profile',
                     ),
                   ],
                 ),

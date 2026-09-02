@@ -10,6 +10,11 @@ import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_event.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_state.dart';
 
+enum SavingsDepositType {
+  monthlyRequired,
+  anyTimeContribution,
+}
+
 class SavingsPaymentPage extends StatefulWidget {
   final SavingsObligationEntity? obligation;
 
@@ -24,6 +29,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
   final _amountController = TextEditingController();
   final _referenceController = TextEditingController();
 
+  SavingsDepositType _depositType = SavingsDepositType.monthlyRequired;
   String _selectedPaymentMethod = 'bank_transfer';
   PlatformFile? _pickedFile;
   int _pickedFileSize = 0;
@@ -31,11 +37,24 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.obligation != null) {
-      _amountController.text = widget.obligation!.totalDue.toStringAsFixed(0);
-    } else {
-      _amountController.text = '2000';
-    }
+    _applyDepositType(SavingsDepositType.monthlyRequired);
+  }
+
+  void _applyDepositType(SavingsDepositType type) {
+    setState(() {
+      _depositType = type;
+      if (type == SavingsDepositType.monthlyRequired) {
+        if (widget.obligation != null) {
+          _amountController.text = widget.obligation!.totalDue.toStringAsFixed(0);
+        } else {
+          _amountController.text = '2000';
+        }
+      } else {
+        if (_amountController.text == '2000') {
+          _amountController.clear();
+        }
+      }
+    });
   }
 
   @override
@@ -108,6 +127,10 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
     final amount = double.tryParse(_amountController.text.trim()) ?? 0.0;
     if (amount <= 0) return;
 
+    final String? obligationId = _depositType == SavingsDepositType.monthlyRequired
+        ? widget.obligation?.id
+        : null;
+
     context.read<SavingsBloc>().add(
           SubmitSavingsPaymentRequested(
             amount: amount,
@@ -117,7 +140,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
             fileName: _pickedFile?.name,
             mimeType: _pickedFile != null ? _determineMimeType(_pickedFile!.name) : null,
             fileSizeBytes: _pickedFileSize > 0 ? _pickedFileSize : null,
-            obligationId: widget.obligation?.id,
+            obligationId: obligationId,
           ),
         );
   }
@@ -127,6 +150,8 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final currencyFormatter = NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+
+    final isMonthlyRequired = _depositType == SavingsDepositType.monthlyRequired;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -166,7 +191,38 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (widget.obligation != null) ...[
+                  Text(
+                    'Select Deposit Type',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _DepositTypeOptionCard(
+                          title: 'Monthly Required',
+                          subtitle: '2,000 ETB (Fixed)',
+                          icon: Icons.event_repeat_rounded,
+                          isSelected: isMonthlyRequired,
+                          onTap: () => _applyDepositType(SavingsDepositType.monthlyRequired),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _DepositTypeOptionCard(
+                          title: 'Any Time Saving',
+                          subtitle: 'Flexible / Voluntary',
+                          icon: Icons.volunteer_activism_rounded,
+                          isSelected: !isMonthlyRequired,
+                          onTap: () => _applyDepositType(SavingsDepositType.anyTimeContribution),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (widget.obligation != null && isMonthlyRequired) ...[
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -219,19 +275,52 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                     ),
                     const SizedBox(height: 20),
                   ],
-                  Text(
-                    'Contribution Amount (ETB)',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Contribution Amount (ETB)',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (isMonthlyRequired)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.lock_rounded, size: 12, color: colorScheme.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Fixed Requirement',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _amountController,
+                    readOnly: isMonthlyRequired,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      hintText: 'Minimum 2000 ETB',
-                      prefixIcon: const Icon(Icons.savings_outlined),
+                      hintText: isMonthlyRequired ? '2000' : 'Enter voluntary amount (e.g. 5000)',
+                      prefixIcon: Icon(
+                        isMonthlyRequired ? Icons.lock_outline_rounded : Icons.savings_outlined,
+                        color: isMonthlyRequired ? theme.hintColor : colorScheme.primary,
+                      ),
+                      fillColor: isMonthlyRequired ? theme.dividerColor.withValues(alpha: 0.1) : null,
+                      filled: isMonthlyRequired,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -249,7 +338,9 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Note: Minimum required contribution is 2,000 ETB/month. You can contribute more at any time.',
+                    isMonthlyRequired
+                        ? 'Fixed minimum monthly saving of 2,000 ETB due by the 12th of each month.'
+                        : 'Any time voluntary contribution — enter any custom amount to grow your savings balance.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.hintColor,
                       fontSize: 11,
@@ -436,6 +527,94 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _DepositTypeOptionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DepositTypeOptionCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary.withValues(alpha: 0.08)
+              : theme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : theme.dividerColor,
+            width: isSelected ? 2.0 : 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSelected ? Colors.white : colorScheme.primary,
+                    size: 18,
+                  ),
+                ),
+                Icon(
+                  isSelected
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_off_rounded,
+                  color: isSelected ? colorScheme.primary : theme.hintColor,
+                  size: 18,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isSelected ? colorScheme.primary : null,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.hintColor,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

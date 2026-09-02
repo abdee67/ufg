@@ -156,6 +156,8 @@ class AuthDataSourceImpl implements AuthDataSource {
       if (session != null) {
         return 'authenticated';
       }
+      //check memebrship status
+      
       return 'no_session';
     } catch (e) {
       if (kDebugMode) {

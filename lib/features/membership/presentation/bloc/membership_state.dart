@@ -64,3 +64,17 @@ class MembershipFailure extends MembershipState {
   @override
   List<Object?> get props => [message];
 }
+
+/// Emitted by [CheckMembershipAfterAuthRequested] after resolving the
+/// membership status. The UI listens for this state and navigates to
+/// [destinationRoute] without performing any business logic itself.
+class MembershipRouteReady extends MembershipState {
+  /// The GoRouter path the UI should navigate to (e.g. AppRoutes.homeScreen
+  /// or AppRoutes.membershipStatus).
+  final String destinationRoute;
+
+  const MembershipRouteReady({required this.destinationRoute});
+
+  @override
+  List<Object?> get props => [destinationRoute];
+}

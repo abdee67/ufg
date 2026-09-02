@@ -42,7 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       final result = await checkStartupSession();
       result.fold((failure) => emit(AuthFailure(failure.message)), (status) {
-        if (status == 'success') {
+        if (status == 'authenticated') {
           emit(AuthSuccess());
         } else if (status == 'no_session') {
           emit(AuthLoggedOut());

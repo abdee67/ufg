@@ -7,6 +7,7 @@ import 'package:ufg/features/auth/presentation/screens/resetPassword.dart';
 import 'package:ufg/features/auth/presentation/screens/welcome_screen.dart';
 import 'package:ufg/features/auth/presentation/screens/login_screen.dart';
 import 'package:ufg/features/auth/presentation/screens/signup_screen.dart';
+import 'package:ufg/features/auth/presentation/widgets/session_checking_splash.dart';
 import 'package:ufg/features/dashboard/dashboard_wrapper.dart';
 import 'package:ufg/features/home/presentation/pages/home_screen.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_application_page.dart';
@@ -29,10 +30,12 @@ class AppRouter {
 
   late final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: showOnboarding
-        ? AppRoutes.onboardingScreen
-        : AppRoutes.loginScreen,
+    initialLocation: AppRoutes.initialRoute,
     routes: [
+      GoRoute(
+        path: AppRoutes.initialRoute,
+        builder: (context, state) => SessionCheckingSplash(showOnboarding: showOnboarding),
+      ),
       GoRoute(
         path: AppRoutes.onboardingScreen,
         builder: (context, state) => const OnboardingScreen(),
