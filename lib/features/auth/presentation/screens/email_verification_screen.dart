@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_images.dart';
 import 'package:ufg/core/constants/app_routes.dart';
-import 'dart:async';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/primary_button.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_state.dart';
@@ -76,6 +80,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               SnackBar(
                 content: const Text('New code sent to your email!'),
                 backgroundColor: colorScheme.primary,
+                behavior: SnackBarBehavior.floating,
               ),
             );
             _startCountdown();
@@ -84,194 +89,171 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: colorScheme.error,
+                behavior: SnackBarBehavior.floating,
               ),
             );
           }
         },
         builder: (context, state) {
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  colorScheme.primary.withValues(alpha: 0.05),
-                  theme.scaffoldBackgroundColor,
-                ],
-              ),
-            ),
-            child: Center(
-              child: SingleChildScrollView(
-                child: Container(
-                  margin: const EdgeInsets.all(20),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 40,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        spreadRadius: 5,
+          return Center(
+            child: SingleChildScrollView(
+              child: Container(
+                margin: const EdgeInsets.all(AppSizes.spacingL),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingXxl,
+                  vertical: AppSizes.spacingHero,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
+                  border: Border.all(color: theme.dividerColor),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(AllImages().logo, height: 120),
+                    const SizedBox(height: AppSizes.spacingL),
+                    Text(
+                      'Verify your email',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: colorScheme.primary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(AllImages().logo, height: 120),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Verify Your Email',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
+                    ),
+                    const SizedBox(height: AppSizes.spacingXs),
+                    Text(
+                      'We sent an 8-digit code to:',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.65),
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'We sent a 8-digit code to:',
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color,
-                          fontSize: 16,
-                        ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.email,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        widget.email,
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _otpController,
-                              decoration: InputDecoration(
-                                labelText: 'Verification Code',
-                                prefixIcon: Icon(
-                                  Icons.verified_user,
-                                  color: colorScheme.primary,
-                                ),
-                                filled: true,
-                                fillColor: theme.cardColor,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide.none,
-                                ),
-                                counterText: '',
+                    ),
+                    const SizedBox(height: AppSizes.spacingXl),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _otpController,
+                            decoration: InputDecoration(
+                              labelText: 'Verification code',
+                              prefixIcon: Icon(
+                                AppIcons.shield.outline,
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
                               ),
-                              keyboardType: TextInputType.number,
-                              maxLength: 8,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter the verification code';
-                                }
-                                if (value.length != 8) {
-                                  return 'Code must be 8 digits';
-                                }
-                                return null;
-                              },
+                              filled: true,
+                              fillColor: colorScheme.surface,
+                              border: _fieldBorder(),
+                              enabledBorder: _fieldBorder(),
+                              focusedBorder: _fieldBorder(
+                                color: colorScheme.primary,
+                              ),
+                              counterText: '',
                             ),
-                            const SizedBox(height: 20),
-                            if (_message != null)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Text(
-                                  _message!,
-                                  style: TextStyle(
-                                    color: _message!.contains('failed')
-                                        ? colorScheme.error
-                                        : ColorConstants.brandGreen,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            keyboardType: TextInputType.number,
+                            maxLength: 8,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter the verification code';
+                              }
+                              if (value.length != 8) {
+                                return 'Code must be 8 digits';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: AppSizes.spacingL),
+                          if (_message != null)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppSizes.spacingXs,
                               ),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    context.read<AuthBloc>().add(
-                                      VerifyOtpRequested(
-                                        widget.email,
-                                        _otpController.text.trim(),
-                                      ),
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colorScheme.primary,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                  elevation: 5,
-                                ),
-                                child: state is AuthLoading
-                                    ? const CircularProgressIndicator(
-                                        color: Colors.white,
-                                      )
-                                    : const Text(
-                                        'VERIFY',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            TextButton(
-                              onPressed: _countdown == 0
-                                  ? () {
-                                      context.read<AuthBloc>().add(
-                                        SendOtpRequested(widget.email),
-                                      );
-                                    }
-                                  : null,
                               child: Text(
-                                _countdown == 0
-                                    ? 'Resend Code'
-                                    : 'Resend in $_countdown seconds',
+                                _message!,
                                 style: TextStyle(
-                                  color: _countdown == 0
-                                      ? colorScheme.primary
-                                      : theme.hintColor,
+                                  color: _message!.contains('failed')
+                                      ? colorScheme.error
+                                      : ColorConstants.success,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            TextButton(
-                              onPressed: () => context.go(AppRoutes.loginScreen),
-                              child: Text(
-                                'Back to Login',
-                                style: TextStyle(color: colorScheme.primary),
+                          PrimaryButton(
+                            label: 'Verify',
+                            isLoading: state is AuthLoading,
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                context.read<AuthBloc>().add(
+                                  VerifyOtpRequested(
+                                    widget.email,
+                                    _otpController.text.trim(),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: AppSizes.spacingM),
+                          TextButton(
+                            onPressed: _countdown == 0
+                                ? () {
+                                    context.read<AuthBloc>().add(
+                                      SendOtpRequested(widget.email),
+                                    );
+                                  }
+                                : null,
+                            child: Text(
+                              _countdown == 0
+                                  ? 'Resend code'
+                                  : 'Resend in $_countdown seconds',
+                              style: TextStyle(
+                                color: _countdown == 0
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface
+                                        .withValues(alpha: 0.45),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: AppSizes.spacingXs),
+                          TextButton(
+                            onPressed: () =>
+                                context.go(AppRoutes.loginScreen),
+                            child: Text(
+                              'Back to sign in',
+                              style: TextStyle(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  OutlineInputBorder _fieldBorder({Color color = Colors.transparent}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSizes.radiusField),
+      borderSide: BorderSide(color: color, width: 1.4),
     );
   }
 }

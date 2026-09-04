@@ -12,15 +12,24 @@ class PasswordStrengthMeter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final strength = _calculateStrength();
-    return Row(children: List.generate(3, (i) {
-      return Expanded(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          height: 5,
-          color: i < strength ? Colors.green : Colors.grey[300],
-        ),
-      );
-    }));
+
+    return Row(
+      children: List.generate(3, (i) {
+        return Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            height: 5,
+            decoration: BoxDecoration(
+              color: i < strength
+                  ? theme.colorScheme.primary
+                  : theme.dividerColor,
+              borderRadius: BorderRadius.circular(2.5),
+            ),
+          ),
+        );
+      }),
+    );
   }
 }

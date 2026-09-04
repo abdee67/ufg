@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_images.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/utils/session_expiry_policy.dart';
@@ -151,7 +152,7 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
                       textAlign: TextAlign.center,
                     ),
                   ] else ...[
-                    Icon(Icons.error_outline_rounded, size: 48, color: colorScheme.error),
+                    Icon(AppIcons.warning.outline, size: 48, color: colorScheme.error),
                     const SizedBox(height: 16),
                     Text(
                       _statusMessage,

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ufg/core/constants/app_colors.dart';
-import 'package:ufg/core/constants/app_images.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/primary_button.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_state.dart';
+import 'package:ufg/features/auth/presentation/widgets/auth_shared.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -42,70 +44,53 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         },
         builder: (context, state) {
           final isLoading = state is AuthLoading;
-          return Stack(
-            children: [
-              _ResetBackground(colorScheme: colorScheme),
-              SafeArea(
+          return AuthBackdrop(
+            child: SafeArea(
+              child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSizes.screenPadding,
+                    14,
+                    AppSizes.screenPadding,
+                    32,
+                  ),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: MediaQuery.sizeOf(context).height - 70,
+                    constraints: const BoxConstraints(
+                      maxWidth: AppSizes.maxContentWidth,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         IconButton(
                           onPressed: () => context.go(AppRoutes.loginScreen),
-                          icon: const Icon(Icons.arrow_back_rounded),
-                          color: colorScheme.primary,
+                          icon: Icon(
+                            AppIcons.back.outline,
+                            color: colorScheme.primary,
+                          ),
                           tooltip: 'Back to login',
                         ),
                         const SizedBox(height: 26),
-                        _BrandMark(colorScheme: colorScheme),
+                        const AuthLogoLockup(),
                         const SizedBox(height: 30),
-                        Text(
-                          'Forgot your\npassword?',
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontSize: 36,
-                            height: 1.08,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                        const AuthHeadline(text: 'Forgot your\npassword?'),
                         const SizedBox(height: 14),
                         Text(
                           'Enter your email and we\'ll send a secure code to help you get back into your account.',
-                          style: TextStyle(
-                            color: theme.textTheme.bodyLarge?.color,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.textTheme.bodyMedium?.color,
                             fontSize: 16,
                             height: 1.5,
                           ),
                         ),
                         const SizedBox(height: 36),
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 0.92),
-                            borderRadius: BorderRadius.circular(28),
-                            border: Border.all(color: theme.dividerColor),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                blurRadius: 28,
-                                offset: const Offset(0, 12),
-                              ),
-                            ],
-                          ),
+                        AuthCard(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Email address',
-                                style: TextStyle(
-                                  color: colorScheme.primary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -118,7 +103,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 decoration: InputDecoration(
                                   hintText: 'you@example.com',
                                   prefixIcon: Icon(
-                                    Icons.mail_outline_rounded,
+                                    AppIcons.mail.outline,
                                     color: colorScheme.primary,
                                   ),
                                   filled: true,
@@ -128,49 +113,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   focusedBorder: _fieldBorder(
                                     color: colorScheme.primary,
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 18,
-                                    vertical: 18,
-                                  ),
                                 ),
                               ),
                               const SizedBox(height: 22),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 54,
-                                child: ElevatedButton(
-                                  onPressed: isLoading ? null : _sendResetCode,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: colorScheme.primary,
-                                    foregroundColor: Colors.white,
-                                    disabledBackgroundColor: colorScheme.primary.withValues(alpha: 0.5),
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                  ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          width: 22,
-                                          height: 22,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.5,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Text(
-                                          'Send verification code',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                ),
+                              PrimaryButton(
+                                label: 'Send verification code',
+                                isLoading: isLoading,
+                                onPressed: _sendResetCode,
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: AppSizes.sectionGap),
                         Center(
                           child: TextButton(
                             onPressed: () => context.go(AppRoutes.loginScreen),
@@ -188,7 +142,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                 ),
               ),
-            ],
+            ),
           );
         },
       ),
@@ -197,7 +151,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   OutlineInputBorder _fieldBorder({Color color = Colors.transparent}) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSizes.radiusField),
       borderSide: BorderSide(color: color, width: 1.4),
     );
   }
@@ -220,83 +174,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             : Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
       ),
-    );
-  }
-}
-
-class _ResetBackground extends StatelessWidget {
-  const _ResetBackground({required this.colorScheme});
-  final ColorScheme colorScheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Stack(
-        children: [
-          Positioned(
-            top: -120,
-            right: -90,
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -120,
-            left: -70,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                color: ColorConstants.navyBlue.withValues(alpha: 0.06),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BrandMark extends StatelessWidget {
-  const _BrandMark({required this.colorScheme});
-  final ColorScheme colorScheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 46,
-          height: 46,
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 14,
-              ),
-            ],
-          ),
-          child: Image.asset(AllImages().logo),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          'Unity Finance',
-          style: TextStyle(
-            color: colorScheme.primary,
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -1,11 +1,14 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_images.dart';
 import 'package:ufg/core/constants/app_routes.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/primary_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -91,8 +94,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
+                    horizontal: AppSizes.spacingXl,
+                    vertical: AppSizes.spacingM,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -161,7 +164,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingXl),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -200,7 +203,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSizes.spacingM),
                 Text(
                   page.description,
                   style: theme.textTheme.titleLarge?.copyWith(
@@ -220,9 +223,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildImageWidget(String assetPath, Color color) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(AppSizes.spacingM),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.2),
@@ -232,7 +235,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
         child: Image.asset(
           assetPath,
           fit: BoxFit.cover,
@@ -242,10 +245,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 300,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
               ),
               child: Icon(
-                Icons.image_not_supported,
+                AppIcons.image.outline,
                 size: 64,
                 color: color,
               ),
@@ -265,8 +268,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildBottomNavigation() {
+    final isLast = _currentPage == _pages.length - 1;
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSizes.spacingXl),
       child: Column(
         children: [
           Row(
@@ -275,7 +280,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               _pages.length,
               (index) => AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingXxs,
+                ),
                 width: _currentPage == index ? 24 : 8,
                 height: 8,
                 decoration: BoxDecoration(
@@ -287,31 +294,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _nextPage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _pages[_currentPage].color,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 8,
-                shadowColor: _pages[_currentPage].color.withValues(alpha: 0.3),
-              ),
-              child: Text(
-                _currentPage == _pages.length - 1
-                    ? 'Get Started'
-                    : 'Next',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+          const SizedBox(height: AppSizes.spacingXxl),
+          PrimaryButton(
+            label: isLast ? 'Get Started' : 'Next',
+            onPressed: _nextPage,
           ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.3),
         ],
       ),
