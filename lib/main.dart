@@ -14,6 +14,7 @@ import 'package:ufg/core/theme/app_theme.dart';
 import 'package:ufg/core/utils/app_state_notifier.dart';
 import 'package:ufg/core/utils/session_expiry_policy.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_bloc.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/injection_container.dart';
@@ -133,6 +134,7 @@ class _UFGState extends State<UFG> with WidgetsBindingObserver {
         BlocProvider(create: (context) => getit<AuthBloc>()),
         BlocProvider(create: (context) => getit<MembershipBloc>()),
         BlocProvider(create: (context) => getit<SavingsBloc>()),
+        BlocProvider(create: (context) => getit<LoanBloc>()),
         ChangeNotifierProvider(create: (context) => getit<AppStateNotifier>()),
       ],
       child: Consumer<AppStateNotifier>(

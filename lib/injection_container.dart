@@ -38,6 +38,25 @@ import 'package:ufg/features/savings/domain/usecases/submit_savings_payment.dart
 import 'package:ufg/features/savings/domain/usecases/upload_payment_proof.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 
+import 'package:ufg/features/loans/data/datasources/loans_remote_data_source.dart';
+import 'package:ufg/features/loans/data/repositories/loan_repository_impl.dart';
+import 'package:ufg/features/loans/domain/repositories/loan_repository.dart';
+import 'package:ufg/features/loans/domain/usecases/cancel_loan_application.dart';
+import 'package:ufg/features/loans/domain/usecases/evaluate_loan_eligibility.dart';
+import 'package:ufg/features/loans/domain/usecases/get_loan_application_detail.dart';
+import 'package:ufg/features/loans/domain/usecases/get_loan_installments.dart';
+import 'package:ufg/features/loans/domain/usecases/get_loan_products.dart';
+import 'package:ufg/features/loans/domain/usecases/get_my_guarantor_requests.dart';
+import 'package:ufg/features/loans/domain/usecases/get_my_loan_applications.dart';
+import 'package:ufg/features/loans/domain/usecases/get_my_loans.dart';
+import 'package:ufg/features/loans/domain/usecases/request_loan_extension.dart';
+import 'package:ufg/features/loans/domain/usecases/request_loan_guarantor.dart';
+import 'package:ufg/features/loans/domain/usecases/respond_to_guarantor_request.dart';
+import 'package:ufg/features/loans/domain/usecases/submit_loan_application.dart';
+import 'package:ufg/features/loans/domain/usecases/submit_loan_repayment_payment.dart';
+import 'package:ufg/features/loans/domain/usecases/upload_loan_payment_proof.dart';
+import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
+
 final getit = GetIt.instance;
 
 void initDependency() {
@@ -129,6 +148,50 @@ void initDependency() {
       cancelWithdrawalRequest: getit(),
       getWithdrawalRequests: getit(),
       uploadPaymentProof: getit(),
+    ),
+  );
+
+  //================== injecting loans ===================
+  getit.registerLazySingleton<LoansRemoteDataSource>(
+    () => LoansRemoteDataSourceImpl(),
+  );
+  getit.registerLazySingleton<LoanRepository>(
+    () => LoanRepositoryImpl(remoteDataSource: getit()),
+  );
+
+  // Loan use cases
+  getit.registerLazySingleton(() => GetLoanProducts(getit()));
+  getit.registerLazySingleton(() => GetMyLoanApplications(getit()));
+  getit.registerLazySingleton(() => GetMyLoans(getit()));
+  getit.registerLazySingleton(() => GetLoanApplicationDetail(getit()));
+  getit.registerLazySingleton(() => SubmitLoanApplication(getit()));
+  getit.registerLazySingleton(() => CancelLoanApplication(getit()));
+  getit.registerLazySingleton(() => EvaluateLoanEligibility(getit()));
+  getit.registerLazySingleton(() => RequestLoanGuarantor(getit()));
+  getit.registerLazySingleton(() => GetMyGuarantorRequests(getit()));
+  getit.registerLazySingleton(() => RespondToGuarantorRequest(getit()));
+  getit.registerLazySingleton(() => RequestLoanExtension(getit()));
+  getit.registerLazySingleton(() => GetLoanInstallments(getit()));
+  getit.registerLazySingleton(() => SubmitLoanRepaymentPayment(getit()));
+  getit.registerLazySingleton(() => UploadLoanPaymentProof(getit()));
+
+  // Loan bloc
+  getit.registerFactory(
+    () => LoanBloc(
+      getLoanProducts: getit(),
+      getMyLoanApplications: getit(),
+      getMyLoans: getit(),
+      getLoanApplicationDetail: getit(),
+      submitLoanApplication: getit(),
+      cancelLoanApplication: getit(),
+      evaluateLoanEligibility: getit(),
+      requestLoanGuarantor: getit(),
+      getMyGuarantorRequests: getit(),
+      respondToGuarantorRequest: getit(),
+      requestLoanExtension: getit(),
+      getLoanInstallments: getit(),
+      submitLoanRepaymentPayment: getit(),
+      uploadLoanPaymentProof: getit(),
     ),
   );
 }
