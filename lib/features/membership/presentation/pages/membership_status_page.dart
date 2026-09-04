@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/app_card.dart';
+import 'package:ufg/core/widgets/error_state.dart';
+import 'package:ufg/core/widgets/loading_indicator.dart';
+import 'package:ufg/core/widgets/primary_button.dart';
+import 'package:ufg/core/widgets/status_chip.dart';
 import 'package:ufg/features/membership/domain/entities/member_entity.dart';
 import 'package:ufg/features/membership/domain/entities/membership_application_entity.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_bloc.dart';
@@ -39,7 +46,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
         title: const Text('Membership Status'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(AppIcons.refresh.outline, size: AppSizes.iconM),
             onPressed: _refreshStatus,
             tooltip: 'Refresh',
           ),
@@ -52,6 +59,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: colorScheme.error,
+                behavior: SnackBarBehavior.floating,
               ),
             );
           } else if (state is MembershipOperationSuccess) {
@@ -59,6 +67,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: colorScheme.primary,
+                behavior: SnackBarBehavior.floating,
               ),
             );
             _refreshStatus();
@@ -66,7 +75,10 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
         },
         builder: (context, state) {
           if (state is MembershipLoading && state is! MembershipStatusLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return ListView(
+              physics: AlwaysScrollableScrollPhysics(),
+              children: [SizedBox(height: 120), LoadingIndicator()],
+            );
           }
 
           if (state is MembershipStatusLoaded) {
@@ -89,18 +101,14 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
             return _buildNoApplicationView(theme, colorScheme);
           }
 
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Unable to load membership status.'),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: _refreshStatus,
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              ErrorState(
+                message: 'Unable to load membership status.',
+                onRetry: _refreshStatus,
+              ),
+            ],
           );
         },
       ),
@@ -112,25 +120,30 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
+    final onGradient = ColorConstants.onBrand;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenPadding,
-        vertical: 24,
+        vertical: AppSizes.spacingXl,
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSizes.spacingXl),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colorScheme.primary, colorScheme.secondary],
+              gradient: const LinearGradient(
+                colors: [
+                  ColorConstants.navGradientStart,
+                  ColorConstants.navGradientEnd,
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppSizes.radiusCard),
               boxShadow: [
                 BoxShadow(
-                  color: colorScheme.primary.withValues(alpha: 0.3),
+                  color: ColorConstants.navyBlue.withValues(alpha: 0.3),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 ),
@@ -145,40 +158,47 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                     Text(
                       'ACTIVE MEMBER',
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: Colors.white70,
+                        color: onGradient.withValues(alpha: 0.7),
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.5,
                       ),
                     ),
-                    const Icon(Icons.verified_rounded, color: Colors.white),
+                    Icon(
+                      AppIcons.verified.outline,
+                      color: onGradient,
+                      size: AppSizes.iconM,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSizes.spacingL),
                 Text(
                   member.memberNumber,
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: onGradient,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSizes.spacingM),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Membership Date',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                          style: TextStyle(
+                            color: onGradient.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
                         ),
                         Text(
                           DateFormat(
                             'dd MMM yyyy',
                           ).format(member.membershipDate),
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: onGradient,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -187,19 +207,32 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
-                        vertical: 4,
+                        vertical: AppSizes.spacingXxs,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.greenAccent),
-                      ),
-                      child: const Text(
-                        'Active',
-                        style: TextStyle(
-                          color: Colors.greenAccent,
-                          fontWeight: FontWeight.bold,
+                        color: onGradient.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                        border: Border.all(
+                          color: onGradient.withValues(alpha: 0.4),
                         ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            AppIcons.check.outline,
+                            color: onGradient,
+                            size: AppSizes.iconXs - 2,
+                          ),
+                          const SizedBox(width: AppSizes.spacingXxs),
+                          Text(
+                            'Active',
+                            style: TextStyle(
+                              color: onGradient,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -207,22 +240,11 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
               ],
             ),
           ),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.dashboard_rounded),
-              label: const Text('Go to Member Dashboard'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              onPressed: () => context.go(AppRoutes.homeScreen),
-            ),
+          const SizedBox(height: AppSizes.spacingXxl),
+          PrimaryButton(
+            label: 'Go to Member Dashboard',
+            icon: AppIcons.home.outline,
+            onPressed: () => context.go(AppRoutes.homeScreen),
           ),
         ],
       ),
@@ -242,69 +264,86 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenPadding,
-        vertical: 20,
+        vertical: AppSizes.spacingL,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Application Summary Card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.dividerColor),
-            ),
+          AppCard(
+            padding: AppSizes.spacingL,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Application Under Review',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        isApproved
+                            ? 'Application Approved'
+                            : (isRejected || isCancelled
+                                ? 'Application Closed'
+                                : 'Application Under Review'),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                     _statusBadge(status, colorScheme),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSizes.spacingS),
                 Text(
                   'Submitted on: ${DateFormat('dd MMM yyyy, hh:mm a').format(application.submittedAt)}',
-                  style: theme.textTheme.bodySmall,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
                 ),
                 if (isRejected && application.rejectionReason != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSizes.spacingS),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(AppSizes.spacingS),
                     decoration: BoxDecoration(
                       color: colorScheme.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: colorScheme.error),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusChip),
+                      border: Border.all(
+                        color: colorScheme.error.withValues(alpha: 0.4),
+                      ),
                     ),
-                    child: Text(
-                      'Rejection reason: ${application.rejectionReason}',
-                      style: TextStyle(color: colorScheme.error, fontSize: 13),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          AppIcons.warning.outline,
+                          color: colorScheme.error,
+                          size: AppSizes.iconS - 2,
+                        ),
+                        const SizedBox(width: AppSizes.spacingXs),
+                        Expanded(
+                          child: Text(
+                            'Rejection reason: ${application.rejectionReason}',
+                            style: TextStyle(
+                              color: colorScheme.error,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Process Timeline
+          const SizedBox(height: AppSizes.spacingXl),
           Text(
             'Application Process',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 16),
-
+          const SizedBox(height: AppSizes.spacingM),
           _timelineStep(
             title: '1. Application & KYC Submitted',
             subtitle:
@@ -319,8 +358,7 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
             subtitle:
                 'Unity Finance authorized staff are verifying your identity document.',
             isDone: isApproved,
-            isActive:
-                status == MembershipApplicationStatus.submitted ||
+            isActive: status == MembershipApplicationStatus.submitted ||
                 status == MembershipApplicationStatus.underReview,
             colorScheme: colorScheme,
             theme: theme,
@@ -335,31 +373,23 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
             theme: theme,
             isLast: true,
           ),
-
-          const SizedBox(height: 32),
-
+          const SizedBox(height: AppSizes.spacingXxl),
           if (isRejected || isCancelled) ...[
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () => context.go(AppRoutes.membershipApply),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Submit New Application'),
-              ),
+            PrimaryButton(
+              label: 'Submit New Application',
+              onPressed: () => context.go(AppRoutes.membershipApply),
             ),
           ] else if (!isApproved) ...[
             Center(
               child: TextButton.icon(
-                icon: const Icon(Icons.close_rounded),
+                icon: Icon(
+                  AppIcons.close.outline,
+                  size: AppSizes.iconS - 2,
+                ),
                 label: const Text('Cancel Application'),
-                style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                style: TextButton.styleFrom(
+                  foregroundColor: colorScheme.error,
+                ),
                 onPressed: () {
                   context.read<MembershipBloc>().add(
                     CancelMembershipApplicationRequested(
@@ -378,16 +408,26 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
   Widget _buildNoApplicationView(ThemeData theme, ColorScheme colorScheme) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.spacingXl,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.assignment_outlined,
-              size: 64,
-              color: colorScheme.primary,
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                AppIcons.loans.outline,
+                size: 32,
+                color: colorScheme.primary,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSizes.spacingM),
             Text(
               'No Active Membership Application',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -395,27 +435,20 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSizes.spacingXs),
             Text(
               'You are currently a Non-Member. Apply now to unlock savings accounts and loan features.',
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.65),
+                height: 1.4,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(
+            const SizedBox(height: AppSizes.spacingXl),
+            PrimaryButton(
+              label: 'Apply for Membership',
+              width: 240,
               onPressed: () => context.go(AppRoutes.membershipApply),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('Apply for Membership'),
             ),
           ],
         ),
@@ -427,54 +460,40 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
     MembershipApplicationStatus status,
     ColorScheme colorScheme,
   ) {
-    Color bg;
-    Color fg;
-    String label;
-
-    switch (status) {
-      case MembershipApplicationStatus.approved:
-        bg = Colors.green.withValues(alpha: 0.15);
-        fg = Colors.green;
-        label = 'Approved';
-        break;
-      case MembershipApplicationStatus.underReview:
-        bg = Colors.blue.withValues(alpha: 0.15);
-        fg = Colors.blue;
-        label = 'Under Review';
-        break;
-      case MembershipApplicationStatus.rejected:
-        bg = Colors.red.withValues(alpha: 0.15);
-        fg = Colors.red;
-        label = 'Rejected';
-        break;
-      case MembershipApplicationStatus.cancelled:
-        bg = Colors.grey.withValues(alpha: 0.15);
-        fg = Colors.grey;
-        label = 'Cancelled';
-        break;
-      case MembershipApplicationStatus.draft:
-        bg = Colors.purple.withValues(alpha: 0.15);
-        fg = Colors.purple;
-        label = 'Draft';
-        break;
-      case MembershipApplicationStatus.submitted:
-        bg = Colors.orange.withValues(alpha: 0.15);
-        fg = Colors.orange;
-        label = 'Submitted';
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
+    final (StatusTone tone, String label, IconData icon) = switch (status) {
+      MembershipApplicationStatus.approved => (
+        StatusTone.success,
+        'Approved',
+        AppIcons.check.outline,
       ),
-      child: Text(
-        label,
-        style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.bold),
+      MembershipApplicationStatus.underReview => (
+        StatusTone.info,
+        'Under Review',
+        AppIcons.history.outline,
       ),
-    );
+      MembershipApplicationStatus.rejected => (
+        StatusTone.error,
+        'Rejected',
+        AppIcons.close.outline,
+      ),
+      MembershipApplicationStatus.cancelled => (
+        StatusTone.neutral,
+        'Cancelled',
+        AppIcons.close.outline,
+      ),
+      MembershipApplicationStatus.draft => (
+        StatusTone.neutral,
+        'Draft',
+        AppIcons.edit.outline,
+      ),
+      MembershipApplicationStatus.submitted => (
+        StatusTone.warning,
+        'Submitted',
+        AppIcons.calendar.outline,
+      ),
+    };
+
+    return StatusChip(label: label, tone: tone, icon: icon);
   }
 
   Widget _timelineStep({
@@ -487,8 +506,10 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
     bool isLast = false,
   }) {
     Color iconBg = isDone
-        ? Colors.green
-        : (isActive ? colorScheme.primary : Colors.grey.shade400);
+        ? ColorConstants.success
+        : (isActive
+            ? colorScheme.primary
+            : colorScheme.onSurface.withValues(alpha: 0.25));
 
     return IntrinsicHeight(
       child: Row(
@@ -505,26 +526,32 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                 ),
                 child: Icon(
                   isDone
-                      ? Icons.check
-                      : (isActive ? Icons.sync : Icons.circle_outlined),
-                  size: 16,
-                  color: Colors.white,
+                      ? AppIcons.check.outline
+                      : (isActive
+                          ? AppIcons.refresh.outline
+                          : AppIcons.info.outline),
+                  size: AppSizes.iconXs,
+                  color: ColorConstants.onBrand,
                 ),
               ),
               if (!isLast)
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: isDone ? Colors.green : Colors.grey.shade300,
-                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    color: isDone
+                        ? ColorConstants.success
+                        : theme.dividerColor,
+                    margin: const EdgeInsets.symmetric(
+                      vertical: AppSizes.spacingXxs,
+                    ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSizes.spacingM),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.only(bottom: AppSizes.spacingXl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -535,8 +562,13 @@ class _MembershipStatusPageState extends State<MembershipStatusPage> {
                       color: isActive ? colorScheme.primary : null,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: theme.textTheme.bodySmall),
+                  const SizedBox(height: AppSizes.spacingXxs),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.65),
+                    ),
+                  ),
                 ],
               ),
             ),

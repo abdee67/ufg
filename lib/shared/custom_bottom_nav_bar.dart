@@ -1,190 +1,113 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+
+class BottomNavItemConfig {
+  const BottomNavItemConfig({
+    required this.label,
+    required this.icon,
+    this.route,
+  });
+
+  final String label;
+  final AppIconPair icon;
+  final String? route;
+}
 
 class CustomBottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
-
   const CustomBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    required this.items,
   });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final List<BottomNavItemConfig> items;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-        24,
-        0,
-        24,
-        32,
-      ), // Slightly higher bottom margin
-      height: 76, // Slightly taller for comfortable touch targets
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(40),
-        // A deep ambient shadow underneath the glass layer
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.secondary.withValues(
-              alpha: 0.15,
-            ),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(color: theme.dividerColor),
+        ),
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Glassmorphic Background
-          ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary.withValues(
-                    alpha: 0.65,
-                  ), // Richer translucent black
-                  borderRadius: BorderRadius.circular(40),
-                  border: Border.all(
-                    color: Colors.white.withValues(
-                      alpha: 0.12,
-                    ), // The "glass shine" edge
-                    width: 1,
+      child: SafeArea(
+        child: SizedBox(
+          height: AppSizes.navBarHeight,
+          child: Row(
+            children: [
+              for (var i = 0; i < items.length; i++)
+                Expanded(child: _NavItem(item: items[i], index: i, isSelected: currentIndex == i, onTap: onTap)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.item,
+    required this.index,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final BottomNavItemConfig item;
+  final int index;
+  final bool isSelected;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final activeColor = theme.colorScheme.primary;
+    final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.55);
+
+    return Semantics(
+      label: item.label,
+      selected: isSelected,
+      button: true,
+      child: InkWell(
+        onTap: () => onTap(index),
+        child: SizedBox(
+          height: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isSelected ? item.icon.bold : item.icon.outline,
+                size: AppSizes.iconM,
+                color: isSelected ? activeColor : inactiveColor,
+              ),
+              const SizedBox(height: AppSizes.spacingXxs),
+              Text(
+                item.label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: isSelected ? activeColor : inactiveColor,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+              if (isSelected)
+                Container(
+                  margin: const EdgeInsets.only(top: AppSizes.spacingXxs),
+                  width: 24,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: ColorConstants.brandGreen,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildNavItem(0, Iconsax.home_1, Iconsax.home, 'Main'),
-                    _buildNavItem(
-                      1,
-                      Iconsax.bag_2,
-                      Iconsax.bag_2,
-                      'Savings',
-                    ),
-                    const SizedBox(
-                      width: 50,
-                    ), // Spacing for the prominent center button
-                    _buildNavItem(
-                      3,
-                      Icons.group_rounded,
-                      Icons.group_outlined,
-                      'Membership',
-                    ),
-                    _buildNavItem(
-                      4,
-                      Icons.person_rounded,
-                      Icons.person_outlined,
-                      'Profile',
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            ],
           ),
-
-          // Prominent Center Action Button
-          Positioned(
-            top: -20, // Floating out of the dock
-            left: 0,
-            right: 0,
-            child: Center(child: _buildBookingButton(2)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    int index,
-    IconData activeIcon,
-    IconData inactiveIcon,
-    String label,
-  ) {
-    final isSelected = currentIndex == index;
-
-    return GestureDetector(
-      onTap: () => onTap(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return ScaleTransition(
-                  scale: animation,
-                  child: FadeTransition(opacity: animation, child: child),
-                );
-              },
-              child: Icon(
-                isSelected ? activeIcon : inactiveIcon,
-                key: ValueKey<bool>(isSelected),
-                color: isSelected ? Colors.black : Colors.white54,
-                size: isSelected ? 28 : 24, // Subtle scale bounce
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutQuint,
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.black
-                    : Colors.transparent, // Hides text cleanly when inactive
-                fontSize: isSelected ? 10 : 8,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Montserrat',
-                letterSpacing: 0.2,
-              ),
-              child: Text(label),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBookingButton(int index) {
-    final isSelected = currentIndex == index;
-
-    return GestureDetector(
-      onTap: () => onTap(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-        height: 64, // Larger, more prominent touch target
-        width: 64,
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.white54,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (isSelected ? Colors.black : Colors.white54).withValues(
-                alpha: 0.4,
-              ),
-              blurRadius: 16,
-              spreadRadius: 4,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Icon(
-          Icons.calendar_month_rounded,
-          color: isSelected ? Colors.white : Colors.black,
-          size: 30,
         ),
       ),
     );

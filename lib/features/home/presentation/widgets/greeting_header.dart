@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
 
 class GreetingHeader extends StatefulWidget {
   const GreetingHeader({super.key});
@@ -44,6 +46,10 @@ class _GreetingHeaderState extends State<GreetingHeader>
 
   @override
   Widget build(BuildContext context) {
+    final onGradient = ColorConstants.onBrand;
+    final chipColor = onGradient.withValues(alpha: 0.15);
+    final chipBorder = onGradient.withValues(alpha: 0.25);
+
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -53,175 +59,143 @@ class _GreetingHeaderState extends State<GreetingHeader>
             opacity: _opacityAnimation.value,
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSizes.spacingXl),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    ColorConstants.navyBlue,
-                    ColorConstants.brandGreen,
+                    ColorConstants.navGradientStart,
+                    ColorConstants.navGradientEnd,
                   ],
-                  stops: [0.0, 1.0],
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                 boxShadow: [
                   BoxShadow(
                     color: ColorConstants.navyBlue.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
-                  BoxShadow(
-                    color: ColorConstants.brandGreen.withValues(alpha: 0.2),
-                    blurRadius: 30,
-                    offset: const Offset(0, 15),
-                  ),
                 ],
               ),
-              child: Stack(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Positioned(
-                    top: -20,
-                    right: -20,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -30,
-                    left: -30,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.05),
-                      ),
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _getTimeIcon(),
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Good ${_getTimeGreeting()}!',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.refresh_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              splashRadius: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Unity Finance',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                          horizontal: AppSizes.spacingS,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
+                          color: chipColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: chipBorder, width: 1),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.savings_rounded,
-                              color: Colors.white,
-                              size: 16,
+                              _getTimeIcon(),
+                              color: onGradient,
+                              size: AppSizes.iconXs,
                             ),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
-                              'Save. Borrow. Grow together.',
+                              'Good ${_getTimeGreeting()}!',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
+                                color: onGradient,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          _QuickStat(
-                            icon: Icons.verified_rounded,
-                            label: 'Active Members',
-                            value: '100+',
+                      Container(
+                        decoration: BoxDecoration(
+                          color: chipColor,
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusChip,
                           ),
-                          const SizedBox(width: 12),
-                          _QuickStat(
-                            icon: Icons.trending_up_rounded,
-                            label: 'Total Savings',
-                            value: 'ETB 1M+',
+                        ),
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: Icon(
+                            AppIcons.refresh.outline,
+                            color: onGradient,
+                            size: AppSizes.iconS,
                           ),
-                          const SizedBox(width: 12),
-                          _QuickStat(
-                            icon: Icons.handshake_rounded,
-                            label: 'Loans Disbursed',
-                            value: '500+',
+                          splashRadius: 20,
+                          tooltip: 'Refresh',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSizes.spacingXl),
+                  Text(
+                    'Unity Finance',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: onGradient,
+                      letterSpacing: -0.5,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.spacingS),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.spacingS,
+                      vertical: AppSizes.spacingXs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: chipColor,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.radiusCard,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          AppIcons.savings.outline,
+                          color: onGradient,
+                          size: AppSizes.iconXs,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Save. Borrow. Grow together.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: onGradient,
+                            fontWeight: FontWeight.w500,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.spacingM),
+                  Row(
+                    children: [
+                      _QuickStat(
+                        icon: AppIcons.verified.outline,
+                        label: 'Active Members',
+                        value: '100+',
+                      ),
+                      const SizedBox(width: AppSizes.spacingS),
+                      _QuickStat(
+                        icon: AppIcons.trendUp.outline,
+                        label: 'Total Savings',
+                        value: 'ETB 1M+',
+                      ),
+                      const SizedBox(width: AppSizes.spacingS),
+                      _QuickStat(
+                        icon: AppIcons.members.outline,
+                        label: 'Loans Disbursed',
+                        value: '500+',
                       ),
                     ],
                   ),
@@ -243,9 +217,8 @@ class _GreetingHeaderState extends State<GreetingHeader>
 
   IconData _getTimeIcon() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return Icons.wb_sunny_rounded;
-    if (hour < 17) return Icons.wb_sunny_outlined;
-    return Icons.nights_stay_rounded;
+    if (hour < 17) return AppIcons.sun.outline;
+    return AppIcons.moon.outline;
   }
 }
 
@@ -262,26 +235,28 @@ class _QuickStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onGradient = ColorConstants.onBrand;
+
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSizes.spacingS),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(16),
+          color: onGradient.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(AppSizes.radiusCard),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: onGradient.withValues(alpha: 0.25),
             width: 1,
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: Colors.white, size: 16),
-            const SizedBox(height: 8),
+            Icon(icon, color: onGradient, size: AppSizes.iconXs),
+            const SizedBox(height: AppSizes.spacingXs),
             Text(
               value,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: onGradient,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -289,8 +264,8 @@ class _QuickStat extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white70,
+              style: TextStyle(
+                color: onGradient.withValues(alpha: 0.7),
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
               ),
