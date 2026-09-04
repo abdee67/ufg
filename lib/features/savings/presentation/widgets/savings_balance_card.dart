@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/utils/formatters.dart';
 
 class SavingsBalanceCard extends StatelessWidget {
   final double totalSavings;
@@ -20,23 +22,22 @@ class SavingsBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+    final onGradient = ColorConstants.onBrand;
+    final onGradientSoft = onGradient.withValues(alpha: 0.7);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(AppSizes.spacingL),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            ColorConstants.navyBlue,
-            Color(0xFF1B3B6F),
-            ColorConstants.brandGreen,
+            ColorConstants.navGradientStart,
+            ColorConstants.navGradientEnd,
           ],
-          stops: [0.0, 0.55, 1.0],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         boxShadow: [
           BoxShadow(
             color: ColorConstants.navyBlue.withValues(alpha: 0.35),
@@ -51,18 +52,18 @@ class SavingsBalanceCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(
-                    Icons.account_balance_wallet_rounded,
-                    color: Colors.white70,
-                    size: 18,
+                    AppIcons.savings.outline,
+                    color: onGradientSoft,
+                    size: AppSizes.iconS - 2,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: AppSizes.spacingXs),
                   Text(
-                    'TOTAL MEMBER SAVINGS',
+                    'TOTAL SAVINGS',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: onGradientSoft,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.8,
@@ -70,47 +71,25 @@ class SavingsBalanceCard extends StatelessWidget {
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.shield_rounded, color: Colors.white, size: 13),
-                    SizedBox(width: 4),
-                    Text(
-                      '100% Protected',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSizes.spacingS),
           Text(
-            currencyFormatter.format(totalSavings),
-            style: const TextStyle(
-              color: Colors.white,
+            Formatters.money(totalSavings),
+            style: TextStyle(
+              color: onGradient,
               fontSize: 32,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSizes.spacingL),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(AppSizes.spacingS + 2),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+              color: onGradient.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+              border: Border.all(color: onGradient.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -118,21 +97,30 @@ class SavingsBalanceCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.check_circle_outline_rounded, color: Colors.white70, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Available to Withdraw',
-                            style: TextStyle(color: Colors.white70, fontSize: 11),
+                          Icon(
+                            AppIcons.check.outline,
+                            color: onGradientSoft,
+                            size: 14,
+                          ),
+                          const SizedBox(width: AppSizes.spacingXxs),
+                          Expanded(
+                            child: Text(
+                              'Available to Withdraw',
+                              style: TextStyle(
+                                color: onGradientSoft,
+                                fontSize: 11,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSizes.spacingXxs),
                       Text(
-                        currencyFormatter.format(availableToWithdraw),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        Formatters.money(availableToWithdraw),
+                        style: TextStyle(
+                          color: onGradient,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -140,27 +128,40 @@ class SavingsBalanceCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(height: 30, width: 1, color: Colors.white24),
-                const SizedBox(width: 12),
+                Container(
+                  height: 30,
+                  width: 1,
+                  color: onGradient.withValues(alpha: 0.25),
+                ),
+                const SizedBox(width: AppSizes.spacingS),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.lock_outline_rounded, color: Colors.white70, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Secured for Loans',
-                            style: TextStyle(color: Colors.white70, fontSize: 11),
+                          Icon(
+                            AppIcons.lock.outline,
+                            color: onGradientSoft,
+                            size: 14,
+                          ),
+                          const SizedBox(width: AppSizes.spacingXxs),
+                          Expanded(
+                            child: Text(
+                              'Secured for Loans',
+                              style: TextStyle(
+                                color: onGradientSoft,
+                                fontSize: 11,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSizes.spacingXxs),
                       Text(
-                        currencyFormatter.format(securedSavings),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        Formatters.money(securedSavings),
+                        style: TextStyle(
+                          color: onGradient,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -171,46 +172,62 @@ class SavingsBalanceCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSizes.spacingL),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: onContributeTap,
-                  icon: const Icon(Icons.add_rounded, size: 18),
+                  icon: Icon(
+                    AppIcons.moneySend.outline,
+                    size: AppSizes.iconS - 2,
+                  ),
                   label: const Text(
                     'Save Money',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: onGradient,
                     foregroundColor: ColorConstants.navyBlue,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSizes.spacingS,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.radiusChip + 6,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSizes.spacingS),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: availableToWithdraw > 0 ? onWithdrawTap : null,
-                  icon: const Icon(Icons.arrow_upward_rounded, size: 18),
+                  icon: Icon(
+                    AppIcons.arrowUp.outline,
+                    size: AppSizes.iconS - 2,
+                  ),
                   label: const Text(
                     'Withdraw',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    disabledForegroundColor: Colors.white38,
+                    foregroundColor: onGradient,
+                    disabledForegroundColor: onGradient.withValues(alpha: 0.38),
                     side: BorderSide(
-                      color: availableToWithdraw > 0 ? Colors.white70 : Colors.white24,
+                      color: availableToWithdraw > 0
+                          ? onGradient.withValues(alpha: 0.7)
+                          : onGradient.withValues(alpha: 0.24),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSizes.spacingS,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.radiusChip + 6,
+                      ),
                     ),
                   ),
                 ),

@@ -2,9 +2,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/utils/formatters.dart';
+import 'package:ufg/core/widgets/primary_button.dart';
 import 'package:ufg/features/savings/domain/entities/savings_obligation_entity.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_event.dart';
@@ -82,6 +85,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                   'Selected proof exceeds the 10MB limit. Please choose a smaller file.',
                 ),
                 backgroundColor: Theme.of(context).colorScheme.error,
+                behavior: SnackBarBehavior.floating,
               ),
             );
           }
@@ -99,6 +103,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
           SnackBar(
             content: Text('Failed to pick document: $e'),
             backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -149,7 +154,14 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currencyFormatter = NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+    final isDark = theme.brightness == Brightness.dark;
+    final secondaryText = colorScheme.onSurface.withValues(alpha: 0.6);
+    final errorBg = isDark
+        ? ColorConstants.errorSubtleDark
+        : ColorConstants.errorSubtle;
+    final errorFg = isDark
+        ? colorScheme.error.withValues(alpha: 0.9)
+        : colorScheme.error;
 
     final isMonthlyRequired = _depositType == SavingsDepositType.monthlyRequired;
 
@@ -158,7 +170,8 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
       appBar: AppBar(
         title: const Text('Deposit Savings'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(AppIcons.back.outline, size: AppSizes.iconM),
+          tooltip: 'Back',
           onPressed: () => context.pop(),
         ),
       ),
@@ -169,6 +182,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: colorScheme.primary,
+                behavior: SnackBarBehavior.floating,
               ),
             );
             context.go(AppRoutes.savings);
@@ -177,6 +191,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: colorScheme.error,
+                behavior: SnackBarBehavior.floating,
               ),
             );
           }
@@ -185,7 +200,10 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
           final isLoading = state is SavingsActionInProgress;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.spacingL,
+              vertical: AppSizes.spacingM,
+            ),
             child: Form(
               key: _formKey,
               child: Column(
@@ -197,40 +215,43 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSizes.spacingS),
                   Row(
                     children: [
                       Expanded(
                         child: _DepositTypeOptionCard(
                           title: 'Monthly Required',
                           subtitle: '2,000 ETB (Fixed)',
-                          icon: Icons.event_repeat_rounded,
+                          icon: AppIcons.calendar.outline,
                           isSelected: isMonthlyRequired,
-                          onTap: () => _applyDepositType(SavingsDepositType.monthlyRequired),
+                          onTap: () =>
+                              _applyDepositType(SavingsDepositType.monthlyRequired),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSizes.spacingS),
                       Expanded(
                         child: _DepositTypeOptionCard(
                           title: 'Any Time Saving',
                           subtitle: 'Flexible / Voluntary',
-                          icon: Icons.volunteer_activism_rounded,
+                          icon: AppIcons.savings.outline,
                           isSelected: !isMonthlyRequired,
-                          onTap: () => _applyDepositType(SavingsDepositType.anyTimeContribution),
+                          onTap: () => _applyDepositType(
+                            SavingsDepositType.anyTimeContribution,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSizes.spacingL),
                   if (widget.obligation != null && isMonthlyRequired) ...[
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSizes.spacingM),
                       decoration: BoxDecoration(
                         color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                         border: Border.all(
                           color: widget.obligation!.isLate
-                              ? Colors.red.shade200
+                              ? errorFg.withValues(alpha: 0.4)
                               : colorScheme.primary.withValues(alpha: 0.2),
                         ),
                       ),
@@ -240,23 +261,28 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Payment for ${widget.obligation!.periodLabel}',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Text(
+                                  'Payment for ${widget.obligation!.periodLabel}',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               if (widget.obligation!.isLate)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSizes.spacingXs,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
+                                    color: errorBg,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
                                     'LATE',
                                     style: TextStyle(
-                                      color: Colors.red.shade900,
+                                      color: errorFg,
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -266,14 +292,16 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Required: ${currencyFormatter.format(widget.obligation!.requiredAmount)}'
-                            '${widget.obligation!.hasPenalty ? ' + Penalty: ${currencyFormatter.format(widget.obligation!.latePenaltyAmount)}' : ''}',
-                            style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+                            'Required: ${Formatters.money(widget.obligation!.requiredAmount)}'
+                            '${widget.obligation!.hasPenalty ? ' + Penalty: ${Formatters.money(widget.obligation!.latePenaltyAmount)}' : ''}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: secondaryText,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSizes.spacingL),
                   ],
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -286,15 +314,24 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       ),
                       if (isMonthlyRequired)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSizes.spacingXs,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                              AppSizes.radiusChip,
+                            ),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.lock_rounded, size: 12, color: colorScheme.primary),
-                              const SizedBox(width: 4),
+                              Icon(
+                                AppIcons.lock.outline,
+                                size: 12,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: AppSizes.spacingXxs),
                               Text(
                                 'Fixed Requirement',
                                 style: TextStyle(
@@ -308,7 +345,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSizes.spacingXs),
                   TextFormField(
                     controller: _amountController,
                     readOnly: isMonthlyRequired,
@@ -316,14 +353,20 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                     decoration: InputDecoration(
                       hintText: isMonthlyRequired ? '2000' : 'Enter voluntary amount (e.g. 5000)',
                       prefixIcon: Icon(
-                        isMonthlyRequired ? Icons.lock_outline_rounded : Icons.savings_outlined,
-                        color: isMonthlyRequired ? theme.hintColor : colorScheme.primary,
+                        isMonthlyRequired
+                            ? AppIcons.lock.outline
+                            : AppIcons.savings.outline,
+                        color: isMonthlyRequired
+                            ? secondaryText
+                            : colorScheme.primary,
                       ),
-                      fillColor: isMonthlyRequired ? theme.dividerColor.withValues(alpha: 0.1) : null,
-                      filled: isMonthlyRequired,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      fillColor: isMonthlyRequired
+                          ? theme.dividerColor.withValues(alpha: 0.1)
+                          : colorScheme.surface,
+                      filled: true,
+                      border: _fieldBorder(),
+                      enabledBorder: _fieldBorder(),
+                      focusedBorder: _fieldBorder(color: colorScheme.primary),
                     ),
                     validator: (val) {
                       if (val == null || val.trim().isEmpty) {
@@ -331,48 +374,55 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       }
                       final num = double.tryParse(val.trim());
                       if (num == null || num <= 0) {
-                        return 'Please enter a valid amount greater than 0';
+                        return 'Enter an amount greater than 0 ETB';
                       }
                       return null;
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSizes.spacingXs),
                   Text(
                     isMonthlyRequired
                         ? 'Fixed minimum monthly saving of 2,000 ETB due by the 12th of each month.'
                         : 'Any time voluntary contribution — enter any custom amount to grow your savings balance.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.hintColor,
+                      color: secondaryText,
                       fontSize: 11,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSizes.spacingL),
                   Text(
                     'Payment Method',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSizes.spacingXs),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.spacingM,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                       border: Border.all(color: theme.dividerColor),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _selectedPaymentMethod,
                         isExpanded: true,
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                             value: 'bank_transfer',
                             child: Row(
                               children: [
-                                Icon(Icons.account_balance_rounded, size: 20),
-                                SizedBox(width: 12),
-                                Text('Bank Transfer (CBE / Awash / Dashen)'),
+                                Icon(AppIcons.bank.outline, size: AppSizes.iconS),
+                                const SizedBox(width: AppSizes.spacingS),
+                                const Expanded(
+                                  child: Text(
+                                    'Bank Transfer (CBE / Awash / Dashen)',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -380,9 +430,14 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                             value: 'wallet',
                             child: Row(
                               children: [
-                                Icon(Icons.account_balance_wallet_rounded, size: 20),
-                                SizedBox(width: 12),
-                                Text('Mobile Wallet (Telebirr / CBEBirr)'),
+                                Icon(AppIcons.card.outline, size: AppSizes.iconS),
+                                const SizedBox(width: AppSizes.spacingS),
+                                const Expanded(
+                                  child: Text(
+                                    'Mobile Wallet (Telebirr / CBEBirr)',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -395,22 +450,27 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSizes.spacingL),
                   Text(
                     'Transaction Reference / Receipt ID',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSizes.spacingXs),
                   TextFormField(
                     controller: _referenceController,
                     decoration: InputDecoration(
                       hintText: 'e.g. FT260901ABCD / TXN123456',
-                      prefixIcon: const Icon(Icons.tag_rounded),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                      prefixIcon: Icon(
+                        AppIcons.receiptItem.outline,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
+                      filled: true,
+                      fillColor: colorScheme.surface,
+                      border: _fieldBorder(),
+                      enabledBorder: _fieldBorder(),
+                      focusedBorder: _fieldBorder(color: colorScheme.primary),
                     ),
                     validator: (val) {
                       if (val == null || val.trim().isEmpty) {
@@ -419,23 +479,23 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSizes.spacingL),
                   Text(
                     'Payment Proof / Receipt Screenshot (Optional)',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSizes.spacingXs),
                   InkWell(
                     onTap: _pickProofDocument,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSizes.spacingM),
                       decoration: BoxDecoration(
                         color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                         border: Border.all(
                           color: _pickedFile != null
                               ? ColorConstants.brandGreen
@@ -447,13 +507,13 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                         children: [
                           Icon(
                             _pickedFile != null
-                                ? Icons.check_circle_rounded
-                                : Icons.upload_file_rounded,
+                                ? AppIcons.check.outline
+                                : AppIcons.upload.outline,
                             color: _pickedFile != null
-                                ? ColorConstants.brandGreen
-                                : theme.hintColor,
+                                ? ColorConstants.success
+                                : secondaryText,
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSizes.spacingS),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -474,7 +534,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                                   Text(
                                     '${(_pickedFileSize / 1024).toStringAsFixed(1)} KB',
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.hintColor,
+                                      color: secondaryText,
                                     ),
                                   ),
                               ],
@@ -482,7 +542,11 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                           ),
                           if (_pickedFile != null)
                             IconButton(
-                              icon: const Icon(Icons.close_rounded, size: 18),
+                              icon: Icon(
+                                AppIcons.close.outline,
+                                size: AppSizes.iconS - 2,
+                              ),
+                              tooltip: 'Remove file',
                               onPressed: () {
                                 setState(() {
                                   _pickedFile = null;
@@ -494,40 +558,26 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : _submitPayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'Submit Payment for Verification',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                    ),
+                  const SizedBox(height: AppSizes.spacingXxl),
+                  PrimaryButton(
+                    label: 'Submit Payment for Verification',
+                    isLoading: isLoading,
+                    onPressed: _submitPayment,
                   ),
+                  const SizedBox(height: AppSizes.spacingHero),
                 ],
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  OutlineInputBorder _fieldBorder({Color color = Colors.transparent}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSizes.radiusField),
+      borderSide: BorderSide(color: color, width: 1.4),
     );
   }
 }
@@ -554,15 +604,15 @@ class _DepositTypeOptionCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSizes.radiusCard),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(AppSizes.spacingS + 2),
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primary.withValues(alpha: 0.08)
               : theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSizes.radiusCard),
           border: Border.all(
             color: isSelected ? colorScheme.primary : theme.dividerColor,
             width: isSelected ? 2.0 : 1.0,
@@ -575,7 +625,7 @@ class _DepositTypeOptionCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(AppSizes.spacingXs),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? colorScheme.primary
@@ -584,20 +634,22 @@ class _DepositTypeOptionCard extends StatelessWidget {
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? Colors.white : colorScheme.primary,
-                    size: 18,
+                    color: isSelected
+                        ? ColorConstants.onBrand
+                        : colorScheme.primary,
+                    size: AppSizes.iconS - 2,
                   ),
                 ),
                 Icon(
                   isSelected
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
+                      ? AppIcons.check.outline
+                      : AppIcons.info.outline,
                   color: isSelected ? colorScheme.primary : theme.hintColor,
-                  size: 18,
+                  size: AppSizes.iconS - 2,
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSizes.spacingS),
             Text(
               title,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -609,7 +661,7 @@ class _DepositTypeOptionCard extends StatelessWidget {
             Text(
               subtitle,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.hintColor,
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 11,
               ),
             ),

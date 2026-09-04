@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/app_card.dart';
+import 'package:ufg/core/widgets/error_state.dart';
+import 'package:ufg/core/widgets/loading_indicator.dart';
+import 'package:ufg/core/widgets/section_header.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_event.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_state.dart';
@@ -36,7 +43,8 @@ class _SavingsPageState extends State<SavingsPage> {
       appBar: AppBar(
         title: const Text('Savings'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(AppIcons.back.outline, size: AppSizes.iconM),
+          tooltip: 'Back',
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -47,7 +55,7 @@ class _SavingsPageState extends State<SavingsPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history_rounded),
+            icon: Icon(AppIcons.history.outline, size: AppSizes.iconM),
             tooltip: 'Savings History',
             onPressed: () => context.push(AppRoutes.savingsHistory),
           ),
@@ -62,13 +70,20 @@ class _SavingsPageState extends State<SavingsPage> {
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: colorScheme.error,
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
             }
           },
           builder: (context, state) {
             if (state is SavingsLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 120),
+                  LoadingIndicator(),
+                ],
+              );
             }
 
             if (state is SavingsSummaryLoaded) {
@@ -76,7 +91,10 @@ class _SavingsPageState extends State<SavingsPage> {
 
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingL,
+                  vertical: AppSizes.spacingM,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -84,26 +102,19 @@ class _SavingsPageState extends State<SavingsPage> {
                       totalSavings: summary.totalSavings,
                       availableToWithdraw: summary.availableToWithdraw,
                       securedSavings: summary.securedSavings,
-                      onContributeTap: () => context.push(AppRoutes.savingsPayment),
-                      onWithdrawTap: () => context.push(AppRoutes.savingsWithdraw),
+                      onContributeTap: () =>
+                          context.push(AppRoutes.savingsPayment),
+                      onWithdrawTap: () =>
+                          context.push(AppRoutes.savingsWithdraw),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Current Obligation',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => context.push(AppRoutes.savingsObligations),
-                          child: const Text('View All Obligations'),
-                        ),
-                      ],
+                    const SizedBox(height: AppSizes.spacingXl),
+                    SectionHeader(
+                      title: 'Current Obligation',
+                      trailing: 'View All Obligations',
+                      onTrailingTap: () =>
+                          context.push(AppRoutes.savingsObligations),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSizes.spacingXs),
                     if (summary.currentObligation != null)
                       MonthlyObligationCard(
                         obligation: summary.currentObligation!,
@@ -113,70 +124,60 @@ class _SavingsPageState extends State<SavingsPage> {
                         ),
                       )
                     else
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: theme.dividerColor),
-                        ),
+                      AppCard(
+                        padding: AppSizes.compactCardPadding,
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle_rounded, color: colorScheme.primary),
-                            const SizedBox(width: 12),
+                            Icon(
+                              AppIcons.check.outline,
+                              color: ColorConstants.success,
+                              size: AppSizes.iconS,
+                            ),
+                            const SizedBox(width: AppSizes.spacingS),
                             const Expanded(
-                              child: Text('No active obligation pending for this month.'),
+                              child: Text(
+                                'No active obligation pending for this month.',
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Quick Shortcuts',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSizes.spacingXl),
+                    SectionHeader(title: 'Quick Shortcuts'),
+                    const SizedBox(height: AppSizes.spacingS),
                     Row(
                       children: [
                         _ShortcutCard(
-                          icon: Icons.receipt_long_rounded,
+                          icon: AppIcons.receiptItem.outline,
                           title: 'Withdrawal Requests',
                           subtitle: 'Track review status',
-                          onTap: () => context.push(AppRoutes.savingsWithdrawals),
+                          onTap: () =>
+                              context.push(AppRoutes.savingsWithdrawals),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSizes.spacingS),
                         _ShortcutCard(
-                          icon: Icons.history_rounded,
+                          icon: AppIcons.history.outline,
                           title: 'Transaction Log',
                           subtitle: 'View ledger records',
-                          onTap: () => context.push(AppRoutes.savingsHistory),
+                          onTap: () =>
+                              context.push(AppRoutes.savingsHistory),
                         ),
                       ],
                     ),
+                    const SizedBox(height: AppSizes.spacingHero),
                   ],
                 ),
               );
             }
 
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Failed to load savings summary.'),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _refreshData,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                ErrorState(
+                  message: 'Failed to load savings summary.',
+                  onRetry: _refreshData,
+                ),
+              ],
             );
           },
         ),
@@ -204,39 +205,35 @@ class _ShortcutCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Expanded(
-      child: InkWell(
+      child: AppCard(
+        padding: AppSizes.spacingS + 2,
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: theme.dividerColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: colorScheme.primary, size: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSizes.spacingXs),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              child: Icon(icon, color: colorScheme.primary, size: AppSizes.iconS),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

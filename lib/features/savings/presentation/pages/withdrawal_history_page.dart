@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/empty_state.dart';
+import 'package:ufg/core/widgets/error_state.dart';
+import 'package:ufg/core/widgets/loading_indicator.dart';
+import 'package:ufg/core/widgets/primary_button.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_event.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_state.dart';
@@ -35,12 +42,13 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
       appBar: AppBar(
         title: const Text('Withdrawal Requests'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(AppIcons.back.outline, size: AppSizes.iconM),
+          tooltip: 'Back',
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_rounded),
+            icon: Icon(AppIcons.moneySend.outline, size: AppSizes.iconM),
             tooltip: 'New Request',
             onPressed: () => context.push(AppRoutes.savingsWithdraw),
           ),
@@ -55,6 +63,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: colorScheme.primary,
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
               _loadRequests();
@@ -63,45 +72,53 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: colorScheme.error,
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
             }
           },
           builder: (context, state) {
             if (state is SavingsLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return ListView(
+                physics: AlwaysScrollableScrollPhysics(),
+                children: [SizedBox(height: 120), LoadingIndicator()],
+              );
             }
 
             if (state is WithdrawalRequestsLoaded) {
               final requests = state.requests;
 
               if (requests.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.account_balance_wallet_outlined,
-                        size: 64,
-                        color: theme.hintColor,
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    const SizedBox(height: AppSizes.spacingHero),
+                    EmptyState(
+                      title: 'No withdrawal requests yet',
+                      subtitle:
+                          'When you request a withdrawal, its review status will be tracked here.',
+                      icon: AppIcons.walletEmpty.outline,
+                      action: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.spacingHero,
+                        ),
+                        child: PrimaryButton(
+                          label: 'Request Withdrawal',
+                          onPressed: () =>
+                              context.push(AppRoutes.savingsWithdraw),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No withdrawal requests yet.',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => context.push(AppRoutes.savingsWithdraw),
-                        child: const Text('Request Withdrawal'),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingL,
+                  vertical: AppSizes.spacingM,
+                ),
                 itemCount: requests.length,
                 itemBuilder: (context, index) {
                   final req = requests[index];
@@ -111,19 +128,19 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text('Cancel Request?'),
-                          content: const Text(
-                            'Are you sure you want to cancel this withdrawal request?',
+                          title: const Text('Cancel withdrawal request?'),
+                          content: Text(
+                            'This will withdraw your ${req.amount.toStringAsFixed(2)} ETB request from review. You can submit a new request at any time.',
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
-                              child: const Text('No, Keep'),
+                              child: const Text('Keep request'),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.error,
-                                foregroundColor: Colors.white,
+                                foregroundColor: ColorConstants.onBrand,
                               ),
                               onPressed: () {
                                 Navigator.pop(ctx);
@@ -133,7 +150,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                                       ),
                                     );
                               },
-                              child: const Text('Yes, Cancel'),
+                              child: const Text('Cancel request'),
                             ),
                           ],
                         ),
@@ -144,11 +161,14 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
               );
             }
 
-            return Center(
-              child: ElevatedButton(
-                onPressed: _loadRequests,
-                child: const Text('Reload Requests'),
-              ),
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                ErrorState(
+                  message: 'Failed to load withdrawal requests.',
+                  onRetry: _loadRequests,
+                ),
+              ],
             );
           },
         ),

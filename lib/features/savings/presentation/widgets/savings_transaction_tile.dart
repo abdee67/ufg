@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ufg/core/constants/app_colors.dart';
+import 'package:ufg/core/constants/app_icons.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/utils/formatters.dart';
 import 'package:ufg/features/savings/domain/entities/savings_history_item_entity.dart';
 
 class SavingsTransactionTile extends StatelessWidget {
@@ -11,17 +14,22 @@ class SavingsTransactionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currencyFormatter = NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+    final isDark = theme.brightness == Brightness.dark;
     final dateFormatter = DateFormat('dd MMM yyyy, hh:mm a');
 
     final bool isCredit = item.isCredit;
+    final accentColor = isCredit
+        ? ColorConstants.success
+        : (isDark ? ColorConstants.warningDark : ColorConstants.warning);
+    final statusLower = item.status.toLowerCase();
+    final bool isCompleted = statusLower == 'posted' || statusLower == 'paid';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
+      padding: const EdgeInsets.all(AppSizes.spacingM),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         border: Border.all(color: theme.dividerColor),
       ),
       child: Row(
@@ -29,18 +37,16 @@ class SavingsTransactionTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isCredit
-                  ? ColorConstants.brandGreen.withValues(alpha: 0.1)
-                  : Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: accentColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSizes.radiusS),
             ),
             child: Icon(
-              isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-              color: isCredit ? ColorConstants.brandGreen : Colors.orange.shade800,
-              size: 20,
+              isCredit ? AppIcons.arrowDown.outline : AppIcons.arrowUp.outline,
+              color: accentColor,
+              size: AppSizes.iconS,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: AppSizes.spacingS + 2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +61,7 @@ class SavingsTransactionTile extends StatelessWidget {
                 Text(
                   '${item.reference} • ${dateFormatter.format(item.timestamp)}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.hintColor,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 11,
                   ),
                 ),
@@ -67,28 +73,32 @@ class SavingsTransactionTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${isCredit ? '+' : '-'}${currencyFormatter.format(item.amount)}',
+                Formatters.signedMoney(isCredit ? item.amount : -item.amount),
                 style: TextStyle(
-                  color: isCredit ? ColorConstants.brandGreen : Colors.orange.shade900,
+                  color: accentColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
               ),
               const SizedBox(height: 2),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
-                  color: item.status.toLowerCase() == 'posted' || item.status.toLowerCase() == 'paid'
-                      ? Colors.green.shade50
-                      : Colors.grey.shade100,
+                  color: (isCompleted
+                          ? ColorConstants.success
+                          : theme.colorScheme.primary)
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   item.status.toUpperCase(),
                   style: TextStyle(
-                    color: item.status.toLowerCase() == 'posted' || item.status.toLowerCase() == 'paid'
-                        ? Colors.green.shade800
-                        : Colors.grey.shade700,
+                    color: isCompleted
+                        ? ColorConstants.success
+                        : theme.colorScheme.primary,
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),
