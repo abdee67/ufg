@@ -1,6 +1,6 @@
 /// Base error for shared and feature-specific exception families.
 ///
-/// This must remain extensible because booking, payment, and auth each define
+/// This must remain extensible because savings, payment, and auth each define
 /// their own domain-specific exception subtypes in separate libraries.
 abstract class AppExceptions implements Exception {
   const AppExceptions({required this.message, this.code, this.cause});

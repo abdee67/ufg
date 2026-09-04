@@ -1,4 +1,16 @@
+import 'package:intl/intl.dart';
+
 class Formatters {
+  static String money(num amount, {bool showSymbol = true}) {
+    final formatted = NumberFormat('#,##0.00', 'en_US').format(amount);
+    return showSymbol ? 'ETB $formatted' : formatted;
+  }
+
+  static String signedMoney(num amount, {bool showSymbol = true}) {
+    final prefix = amount >= 0 ? '+' : '-';
+    return '$prefix${money(amount.abs(), showSymbol: showSymbol)}';
+  }
+
   static DateTime asLocalDateTime(dynamic value) {
     final parsed = DateTime.parse(value.toString());
     return parsed.isUtc ? parsed.toLocal() : parsed;

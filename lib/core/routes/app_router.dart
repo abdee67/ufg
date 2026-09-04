@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/error_state.dart';
 import 'package:ufg/features/auth/presentation/screens/forgotPassword.dart';
 import 'package:ufg/features/auth/presentation/screens/resetPassword.dart';
 import 'package:ufg/features/auth/presentation/screens/welcome_screen.dart';
@@ -12,6 +15,14 @@ import 'package:ufg/features/dashboard/dashboard_wrapper.dart';
 import 'package:ufg/features/home/presentation/pages/home_screen.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_application_page.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_status_page.dart';
+import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
+import 'package:ufg/features/loans/presentation/pages/guarantor_requests_page.dart';
+import 'package:ufg/features/loans/presentation/pages/loan_application_page.dart';
+import 'package:ufg/features/loans/presentation/pages/loan_application_status_page.dart';
+import 'package:ufg/features/loans/presentation/pages/loan_detail_page.dart';
+import 'package:ufg/features/loans/presentation/pages/loan_extension_page.dart';
+import 'package:ufg/features/loans/presentation/pages/loan_repayment_page.dart';
+import 'package:ufg/features/loans/presentation/pages/loans_page.dart';
 import 'package:ufg/features/savings/domain/entities/savings_obligation_entity.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/features/savings/presentation/pages/savings_history_page.dart';
@@ -130,42 +141,86 @@ class AppRouter {
           ),
         ),
       ),
+
+      // =================== Loan Feature Routes ===================
+      GoRoute(
+        path: AppRoutes.loans,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: const LoansPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.loanApply,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: const LoanApplicationPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.loanApplicationStatus,
+        builder: (_, state) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: LoanApplicationStatusPage(
+            applicationId: state.pathParameters['id'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.loanDetail,
+        builder: (_, state) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: LoanDetailPage(
+            loanId: state.pathParameters['id'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.loanRepay,
+        builder: (_, state) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: LoanRepaymentPage(
+            loanId: state.pathParameters['id'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.loanGuarantors,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: const GuarantorRequestsPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.loanExtension,
+        builder: (_, state) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: LoanExtensionPage(
+            loanId: state.pathParameters['id'] ?? '',
+          ),
+        ),
+      ),
     ],
     errorBuilder: (context, state) {
       return Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.5),
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                shape: BoxShape.circle,
-                border: Border.all(color: Theme.of(context).colorScheme.onSurface),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, size: 20),
-                color: Theme.of(context).colorScheme.onSurface,
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Error',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+          title: const Text('Page not found'),
+          leading: IconButton(
+            icon: Icon(AppIcons.back.outline, size: AppSizes.iconM),
+            tooltip: 'Back',
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                context.go(AppRoutes.homeScreen);
+              }
+            },
           ),
         ),
-        body: Center(child: Text('Error: ${state.error}')),
+        body: ErrorState(
+          title: 'Page not found',
+          message: 'The page you are looking for does not exist.',
+        ),
       );
     },
   );

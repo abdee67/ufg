@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:ufg/core/constants/app_sizes.dart';
 
 class MetaRow extends StatelessWidget {
   const MetaRow({
@@ -15,10 +15,16 @@ class MetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF9E735F)),
+        Icon(
+          icon,
+          size: AppSizes.iconS - 2,
+          color: theme.colorScheme.primary,
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -26,15 +32,14 @@ class MetaRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: const Color(0xFF8E7266)),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF43261D),
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),

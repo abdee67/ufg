@@ -8,13 +8,9 @@ class AppRoutes {
   static const String homeScreen = '/home';
   static const String searchScreen = '/search';
   static const String locationScreen = '/location';
-  static const String bookingScreen = '/booking';
-  static const String stylistsScreen = '/stylists';
-  static const String serviceScreen = '/service-screen';
   static const String chat = '/chat';
   static const String payment = '/payment';
   static const String paymentSuccess = '/payment-success';
-  static const String myBooking = '/my-booking';
   static const String profile = '/profile';
   static const String notification = '/notification';
   static const String settings = '/settings';
@@ -32,6 +28,15 @@ class AppRoutes {
   static const String savingsWithdraw = '/savings/withdraw';
   static const String savingsWithdrawals = '/savings/withdrawals';
   static const String savingsPayment = '/savings/payment';
+
+  // Loan Feature Routes
+  static const String loans = '/loans';
+  static const String loanApply = '/loans/apply';
+  static const String loanApplicationStatus = '/loans/application/:id';
+  static const String loanDetail = '/loans/detail/:id';
+  static const String loanRepay = '/loans/repay/:id';
+  static const String loanGuarantors = '/loans/guarantors';
+  static const String loanExtension = '/loans/extension/:id';
 
   static const String logout = '/logout';
 }
