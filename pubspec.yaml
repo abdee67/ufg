@@ -33,27 +33,26 @@ dependencies:
   otp_text_field: ^1.1.5
   dio: ^5.11.0
   file_picker: ^12.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  flutter_launcher_icons: ^0.14.4  
   flutter_lints: ^6.0.0
+
 flutter:
   uses-material-design: true
 
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
   assets:
     - assets/images/
     - assets/images/logo.jpg
+    - assets/images/logo.png
     - assets/env/.env
     - assets/env/.env.local
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo.png"
+  min_sdk_android: 21
+
