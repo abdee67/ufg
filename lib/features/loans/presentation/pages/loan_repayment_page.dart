@@ -216,8 +216,9 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
                       decimal: true,
                     ),
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty)
+                      if (val == null || val.trim().isEmpty) {
                         return 'Enter amount.';
+                      }
                       final num = double.tryParse(val.replaceAll(',', ''));
                       if (num == null || num <= 0) return 'Invalid amount.';
                       return null;
