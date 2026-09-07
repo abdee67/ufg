@@ -14,6 +14,7 @@ class LoanApplicationModel extends LoanApplicationEntity {
     required super.status,
     super.eligibilityStatus,
     super.eligibilitySnapshot,
+    super.createdAt,
     super.submittedAt,
     super.reviewedAt,
     super.approvedAt,
@@ -73,6 +74,9 @@ class LoanApplicationModel extends LoanApplicationEntity {
       eligibilitySnapshot: json['eligibility_snapshot'] is Map
           ? Map<String, dynamic>.from(json['eligibility_snapshot'] as Map)
           : const {},
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
+          : null,
       submittedAt: json['submitted_at'] != null ? DateTime.tryParse(json['submitted_at'] as String) : null,
       reviewedAt: json['reviewed_at'] != null ? DateTime.tryParse(json['reviewed_at'] as String) : null,
       approvedAt: json['approved_at'] != null ? DateTime.tryParse(json['approved_at'] as String) : null,
@@ -94,6 +98,7 @@ class LoanApplicationModel extends LoanApplicationEntity {
       'status': status.name,
       'eligibility_status': eligibilityStatus,
       'eligibility_snapshot': eligibilitySnapshot,
+      'created_at': createdAt?.toIso8601String(),
       'submitted_at': submittedAt?.toIso8601String(),
       'reviewed_at': reviewedAt?.toIso8601String(),
       'approved_at': approvedAt?.toIso8601String(),

@@ -4,11 +4,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ufg/core/config/supabase_config.dart';
 import 'package:ufg/core/errors/exceptions/auth_exceptions.dart';
 import 'package:ufg/features/loans/data/models/guarantor_request_model.dart';
+import 'package:ufg/features/loans/data/models/guarantor_candidate_model.dart';
+import 'package:ufg/features/loans/data/models/member_loan_limit_model.dart';
 import 'package:ufg/features/loans/data/models/loan_application_model.dart';
 import 'package:ufg/features/loans/data/models/loan_eligibility_result_model.dart';
 import 'package:ufg/features/loans/data/models/loan_installment_model.dart';
 import 'package:ufg/features/loans/data/models/loan_model.dart';
 import 'package:ufg/features/loans/data/models/loan_product_model.dart';
+import 'package:ufg/features/loans/domain/entities/loan_product_entity.dart';
 
 abstract class LoansRemoteDataSource {
   Future<List<LoanProductModel>> getLoanProducts();
@@ -23,6 +26,20 @@ abstract class LoansRemoteDataSource {
     required String loanProductId,
     required double requestedAmount,
     String? purpose,
+    required String guarantorMemberId,
+  });
+
+  Future<MemberLoanLimitModel> getMyMemberLoanLimit();
+  Future<List<GuarantorCandidateModel>> searchLoanGuarantors(String search);
+  Future<LoanProductModel> getActiveOutsiderLoanProduct();
+  Future<Map<String, dynamic>> submitOutsiderLoanApplication({
+    required String loanProductId,
+    required String fullName,
+    required String phone,
+    required String address,
+    required double requestedAmount,
+    required String purpose,
+    required String guarantorMemberId,
   });
 
   Future<void> cancelLoanApplication(String applicationId);
@@ -40,7 +57,9 @@ abstract class LoansRemoteDataSource {
 
   Future<void> respondToGuarantorRequest({
     required String guarantorRequestId,
+    required BorrowerType borrowerType,
     required bool accept,
+    String? rejectionReason,
   });
 
   Future<void> requestLoanExtension({
@@ -108,7 +127,7 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
   @override
   Future<List<LoanApplicationModel>> getMyLoanApplications() async {
     try {
-      final response = await _client.rpc('get_my_loan_applications');
+      final response = await _client.rpc('get_my_member_loan_applications_v2');
       if (response == null) return [];
       final list = response as List;
       return list
@@ -119,7 +138,8 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
           )
           .toList();
     } on PostgrestException catch (e) {
-      if (kDebugMode) print('RPC get_my_loan_applications error: ${e.message}');
+      if (kDebugMode)
+        print('RPC get_my_member_loan_applications_v2 error: ${e.message}');
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
@@ -154,7 +174,7 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
   ) async {
     try {
       final response = await _client.rpc(
-        'get_loan_application_detail',
+        'get_member_loan_application_detail_v2',
         params: {'p_application_id': applicationId},
       );
       if (response == null) {
@@ -179,14 +199,16 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
     required String loanProductId,
     required double requestedAmount,
     String? purpose,
+    required String guarantorMemberId,
   }) async {
     try {
       final response = await _client.rpc(
-        'submit_loan_application',
+        'submit_member_loan_application_v2',
         params: {
           'p_loan_product_id': loanProductId,
           'p_requested_amount': requestedAmount,
           'p_purpose': purpose ?? '',
+          'p_guarantor_member_id': guarantorMemberId,
         },
       );
 
@@ -197,7 +219,119 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
       }
       return Map<String, dynamic>.from(response as Map);
     } on PostgrestException catch (e) {
-      if (kDebugMode) print('RPC submit_loan_application error: ${e.message}');
+      if (kDebugMode)
+        print('RPC submit_member_loan_application_v2 error: ${e.message}');
+      throw AuthExceptions(message: e.message);
+    } catch (e) {
+      if (e is AuthExceptions) rethrow;
+      throw AuthExceptions(message: e.toString());
+    }
+  }
+
+  @override
+  Future<MemberLoanLimitModel> getMyMemberLoanLimit() async {
+    try {
+      final response = await _client.rpc('get_my_member_loan_limit_v2');
+      if (response == null) {
+        throw const AuthExceptions(
+          message: 'Member loan limit is unavailable.',
+        );
+      }
+      return MemberLoanLimitModel.fromJson(
+        Map<String, dynamic>.from(response as Map),
+      );
+    } on PostgrestException catch (e) {
+      if (kDebugMode)
+        print('RPC get_my_member_loan_limit_v2 error: ${e.message}');
+      throw AuthExceptions(message: e.message);
+    } catch (e) {
+      if (e is AuthExceptions) rethrow;
+      throw AuthExceptions(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<GuarantorCandidateModel>> searchLoanGuarantors(
+    String search,
+  ) async {
+    try {
+      final response = await _client.rpc(
+        'search_outsider_loan_guarantors',
+        params: {'p_search': search.trim()},
+      );
+      final list = response as List? ?? const [];
+      return list
+          .map(
+            (item) => GuarantorCandidateModel.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .where((candidate) => candidate.memberId.isNotEmpty)
+          .toList();
+    } on PostgrestException catch (e) {
+      if (kDebugMode)
+        print('RPC search_outsider_loan_guarantors error: ${e.message}');
+      throw AuthExceptions(message: e.message);
+    } catch (e) {
+      if (e is AuthExceptions) rethrow;
+      throw AuthExceptions(message: e.toString());
+    }
+  }
+
+  @override
+  Future<LoanProductModel> getActiveOutsiderLoanProduct() async {
+    try {
+      final response = await _client.rpc('get_active_outsider_loan_product_v2');
+      if (response == null) {
+        throw const AuthExceptions(
+          message: 'Outsider loan is currently unavailable.',
+        );
+      }
+      return LoanProductModel.fromJson(
+        Map<String, dynamic>.from(response as Map),
+      );
+    } on PostgrestException catch (e) {
+      if (kDebugMode)
+        print('RPC get_active_outsider_loan_product_v2 error: ${e.message}');
+      throw AuthExceptions(message: e.message);
+    } catch (e) {
+      if (e is AuthExceptions) rethrow;
+      throw AuthExceptions(message: e.toString());
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> submitOutsiderLoanApplication({
+    required String loanProductId,
+    required String fullName,
+    required String phone,
+    required String address,
+    required double requestedAmount,
+    required String purpose,
+    required String guarantorMemberId,
+  }) async {
+    try {
+      final response = await _client.rpc(
+        'submit_outsider_loan_application_v2',
+        params: {
+          'p_loan_product_id': loanProductId,
+          'p_full_name': fullName.trim(),
+          'p_phone': phone.trim(),
+          'p_address': address.trim(),
+          'p_requested_amount': requestedAmount,
+          'p_purpose': purpose.trim(),
+          'p_guarantor_member_id': guarantorMemberId,
+        },
+      );
+      if (response == null) {
+        throw const AuthExceptions(
+          message: 'Failed to submit outsider loan application.',
+        );
+      }
+      return Map<String, dynamic>.from(response as Map);
+    } on PostgrestException catch (e) {
+      if (kDebugMode)
+        print('RPC submit_outsider_loan_application_v2 error: ${e.message}');
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
@@ -275,68 +409,15 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
   @override
   Future<List<GuarantorRequestModel>> getMyGuarantorRequests() async {
     try {
-      // Fetch member id for current user
-      final memberRes = await _client
-          .from('members')
-          .select('id')
-          .eq('profile_id', _currentUserId)
-          .maybeSingle();
-
-      if (memberRes == null) return [];
-      final memberId = memberRes['id'] as String;
-
-      final response = await _client
-          .from('loan_guarantors')
-          .select('''
-            id,
-            loan_application_id,
-            guarantor_member_id,
-            guaranteed_amount,
-            potential_responsibility,
-            status,
-            requested_at,
-            approved_at,
-            rejected_at,
-            released_at,
-            loan_applications (
-              requested_amount,
-              loan_products (
-                service_charge_rate,
-                term_months
-              ),
-              profiles:applicant_profile_id (
-                full_name,
-                phone
-              )
-            )
-          ''')
-          .eq('guarantor_member_id', memberId)
-          .order('requested_at', ascending: false);
-
-      final list = response as List;
-      return list.map((item) {
-        final map = Map<String, dynamic>.from(item as Map);
-        final app = map['loan_applications'] as Map?;
-        final product = app?['loan_products'] as Map?;
-        final profile = app?['profiles'] as Map?;
-
-        final requestedAmount =
-            (app?['requested_amount'] as num?)?.toDouble() ?? 0.0;
-        final serviceRate =
-            (product?['service_charge_rate'] as num?)?.toDouble() ?? 0.15;
-        final serviceAmount = requestedAmount * serviceRate;
-        final totalRepayment = requestedAmount + serviceAmount;
-        final termMonths = (product?['term_months'] as num?)?.toInt() ?? 3;
-
-        map['borrower_name'] = profile?['full_name'];
-        map['borrower_phone'] = profile?['phone'];
-        map['requested_loan_amount'] = requestedAmount;
-        map['service_charge_amount'] = serviceAmount;
-        map['total_repayment'] = totalRepayment;
-        map['term_months'] = termMonths;
-
-        return GuarantorRequestModel.fromJson(map);
-      }).toList();
+      final response = await _client.rpc('get_my_guarantor_requests_v2');
+      final list = response as List? ?? const [];
+      return list
+          .map(
+            (item) => GuarantorRequestModel.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
     } on PostgrestException catch (e) {
       if (kDebugMode) print('getMyGuarantorRequests error: ${e.message}');
       throw AuthExceptions(message: e.message);
@@ -349,14 +430,19 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
   @override
   Future<void> respondToGuarantorRequest({
     required String guarantorRequestId,
+    required BorrowerType borrowerType,
     required bool accept,
+    String? rejectionReason,
   }) async {
     try {
       await _client.rpc(
-        'respond_to_loan_guarantor_request',
+        borrowerType == BorrowerType.member
+            ? 'respond_to_member_loan_guarantor_request_v2'
+            : 'respond_to_outsider_loan_guarantor_request_v2',
         params: {
-          'p_guarantor_request_id': guarantorRequestId,
-          'p_accept': accept,
+          'p_guarantor_id': guarantorRequestId,
+          'p_decision': accept ? 'approved' : 'rejected',
+          'p_rejection_reason': rejectionReason?.trim(),
         },
       );
     } on PostgrestException catch (e) {

@@ -8,7 +8,9 @@ class EvaluateLoanEligibility {
 
   EvaluateLoanEligibility(this.repository);
 
-  Future<Either<Failures, LoanEligibilityResultEntity>> call(String applicationId) async {
+  Future<Either<Failures, LoanEligibilityResultEntity>> call(
+    String applicationId,
+  ) async {
     return await repository.evaluateLoanEligibility(applicationId);
   }
 }

@@ -28,6 +28,7 @@ class LoanApplicationEntity extends Equatable {
   final DateTime? submittedAt;
   final DateTime? reviewedAt;
   final DateTime? approvedAt;
+  final DateTime? createdAt;
   final LoanProductEntity? product;
   final int approvalCount;
 
@@ -46,6 +47,7 @@ class LoanApplicationEntity extends Equatable {
     this.submittedAt,
     this.reviewedAt,
     this.approvedAt,
+    this.createdAt,
     this.product,
     this.approvalCount = 0,
   });
@@ -62,21 +64,21 @@ class LoanApplicationEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        applicationNumber,
-        applicantProfileId,
-        memberId,
-        loanProductId,
-        requestedAmount,
-        approvedAmount,
-        purpose,
-        status,
-        eligibilityStatus,
-        eligibilitySnapshot,
-        submittedAt,
-        reviewedAt,
-        approvedAt,
-        product,
-        approvalCount,
-      ];
+    id,
+    applicationNumber,
+    applicantProfileId,
+    memberId,
+    loanProductId,
+    requestedAmount,
+    approvedAmount,
+    purpose,
+    status,
+    eligibilityStatus,
+    eligibilitySnapshot,
+    submittedAt,
+    reviewedAt,
+    approvedAt,
+    product,
+    approvalCount,
+  ];
 }

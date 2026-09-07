@@ -1,15 +1,11 @@
 import 'package:equatable/equatable.dart';
+import 'package:ufg/features/loans/domain/entities/loan_product_entity.dart';
 
-enum GuarantorStatus {
-  requested,
-  accepted,
-  rejected,
-  replaced,
-  released,
-}
+enum GuarantorStatus { requested, accepted, rejected, replaced, released }
 
 class GuarantorRequestEntity extends Equatable {
   final String id;
+  final BorrowerType borrowerType;
   final String loanApplicationId;
   final String guarantorMemberId;
   final String? guarantorName;
@@ -19,6 +15,7 @@ class GuarantorRequestEntity extends Equatable {
   final double potentialResponsibility;
   final GuarantorStatus status;
   final DateTime? requestedAt;
+  final DateTime? respondedAt;
   final DateTime? approvedAt;
   final DateTime? rejectedAt;
   final DateTime? releasedAt;
@@ -29,6 +26,7 @@ class GuarantorRequestEntity extends Equatable {
 
   const GuarantorRequestEntity({
     required this.id,
+    this.borrowerType = BorrowerType.member,
     required this.loanApplicationId,
     required this.guarantorMemberId,
     this.guarantorName,
@@ -38,6 +36,7 @@ class GuarantorRequestEntity extends Equatable {
     required this.potentialResponsibility,
     required this.status,
     this.requestedAt,
+    this.respondedAt,
     this.approvedAt,
     this.rejectedAt,
     this.releasedAt,
@@ -54,22 +53,24 @@ class GuarantorRequestEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        loanApplicationId,
-        guarantorMemberId,
-        guarantorName,
-        borrowerName,
-        borrowerPhone,
-        guaranteedAmount,
-        potentialResponsibility,
-        status,
-        requestedAt,
-        approvedAt,
-        rejectedAt,
-        releasedAt,
-        requestedLoanAmount,
-        serviceChargeAmount,
-        totalRepayment,
-        termMonths,
-      ];
+    id,
+    borrowerType,
+    loanApplicationId,
+    guarantorMemberId,
+    guarantorName,
+    borrowerName,
+    borrowerPhone,
+    guaranteedAmount,
+    potentialResponsibility,
+    status,
+    requestedAt,
+    respondedAt,
+    approvedAt,
+    rejectedAt,
+    releasedAt,
+    requestedLoanAmount,
+    serviceChargeAmount,
+    totalRepayment,
+    termMonths,
+  ];
 }

@@ -7,7 +7,9 @@ class GetLoanApplicationDetail {
 
   GetLoanApplicationDetail(this.repository);
 
-  Future<Either<Failures, Map<String, dynamic>>> call(String applicationId) async {
+  Future<Either<Failures, Map<String, dynamic>>> call(
+    String applicationId,
+  ) async {
     return await repository.getLoanApplicationDetail(applicationId);
   }
 }

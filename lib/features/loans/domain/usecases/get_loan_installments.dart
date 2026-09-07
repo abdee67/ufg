@@ -8,7 +8,9 @@ class GetLoanInstallments {
 
   GetLoanInstallments(this.repository);
 
-  Future<Either<Failures, List<LoanInstallmentEntity>>> call(String loanId) async {
+  Future<Either<Failures, List<LoanInstallmentEntity>>> call(
+    String loanId,
+  ) async {
     return await repository.getLoanInstallments(loanId);
   }
 }

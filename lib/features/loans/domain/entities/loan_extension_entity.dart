@@ -1,10 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum ExtensionStatus {
-  pending,
-  approved,
-  rejected,
-}
+enum ExtensionStatus { pending, approved, rejected }
 
 class LoanExtensionEntity extends Equatable {
   final String id;
@@ -35,14 +31,14 @@ class LoanExtensionEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        loanId,
-        requestedBy,
-        reason,
-        requestedNewDueDate,
-        status,
-        reviewedBy,
-        reviewedAt,
-        createdAt,
-      ];
+    id,
+    loanId,
+    requestedBy,
+    reason,
+    requestedNewDueDate,
+    status,
+    reviewedBy,
+    reviewedAt,
+    createdAt,
+  ];
 }

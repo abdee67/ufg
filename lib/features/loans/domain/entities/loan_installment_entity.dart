@@ -1,12 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum InstallmentStatus {
-  pending,
-  partiallyPaid,
-  paid,
-  overdue,
-  defaulted,
-}
+enum InstallmentStatus { pending, partiallyPaid, paid, overdue, defaulted }
 
 class LoanInstallmentEntity extends Equatable {
   final String id;
@@ -41,26 +35,28 @@ class LoanInstallmentEntity extends Equatable {
   bool get hasLatePenalty => latePenaltyAmount > 0;
 
   /// Remaining base amount to be paid for this installment.
-  double get remainingBaseAmount => (totalDue - paidAmount).clamp(0.0, totalDue);
+  double get remainingBaseAmount =>
+      (totalDue - paidAmount).clamp(0.0, totalDue);
 
   /// Remaining penalty amount to be paid for this installment.
-  double get remainingPenaltyAmount => (latePenaltyAmount - paidPenaltyAmount).clamp(0.0, latePenaltyAmount);
+  double get remainingPenaltyAmount =>
+      (latePenaltyAmount - paidPenaltyAmount).clamp(0.0, latePenaltyAmount);
 
   /// Total remaining amount due (Base remaining + Penalty remaining).
   double get totalRemainingDue => remainingBaseAmount + remainingPenaltyAmount;
 
   @override
   List<Object?> get props => [
-        id,
-        loanId,
-        installmentNumber,
-        dueDate,
-        principalAmount,
-        serviceChargeAmount,
-        totalDue,
-        paidAmount,
-        paidPenaltyAmount,
-        latePenaltyAmount,
-        status,
-      ];
+    id,
+    loanId,
+    installmentNumber,
+    dueDate,
+    principalAmount,
+    serviceChargeAmount,
+    totalDue,
+    paidAmount,
+    paidPenaltyAmount,
+    latePenaltyAmount,
+    status,
+  ];
 }

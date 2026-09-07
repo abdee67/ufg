@@ -11,11 +11,13 @@ class SubmitLoanApplication {
     required String loanProductId,
     required double requestedAmount,
     String? purpose,
+    required String guarantorMemberId,
   }) async {
     return await repository.submitLoanApplication(
       loanProductId: loanProductId,
       requestedAmount: requestedAmount,
       purpose: purpose,
+      guarantorMemberId: guarantorMemberId,
     );
   }
 }

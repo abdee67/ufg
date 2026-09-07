@@ -34,10 +34,10 @@ class LoanEligibilityResultEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        isEligible,
-        requiresGuarantor,
-        message,
-        checks,
-        manualReviews,
-      ];
+    isEligible,
+    requiresGuarantor,
+    message,
+    checks,
+    manualReviews,
+  ];
 }

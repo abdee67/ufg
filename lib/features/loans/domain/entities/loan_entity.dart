@@ -61,21 +61,21 @@ class LoanEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        loanNumber,
-        loanApplicationId,
-        borrowerProfileId,
-        memberId,
-        principal,
-        serviceChargeRate,
-        serviceChargeAmount,
-        totalRepayment,
-        termMonths,
-        status,
-        disbursedAt,
-        maturityDate,
-        totalPaid,
-        totalPenaltiesPaid,
-        outstandingBase,
-      ];
+    id,
+    loanNumber,
+    loanApplicationId,
+    borrowerProfileId,
+    memberId,
+    principal,
+    serviceChargeRate,
+    serviceChargeAmount,
+    totalRepayment,
+    termMonths,
+    status,
+    disbursedAt,
+    maturityDate,
+    totalPaid,
+    totalPenaltiesPaid,
+    outstandingBase,
+  ];
 }
