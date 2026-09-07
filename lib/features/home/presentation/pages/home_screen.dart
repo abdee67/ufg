@@ -185,7 +185,7 @@ class _StickyHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSizes.spacingXxs),
                 IconButton(
-                  onPressed: () => _logout(),
+                  onPressed: () => lo(),
                   icon: Icon(
                     AppIcons.settings.outline,
                     color: colorScheme.primary,
