@@ -7,6 +7,8 @@ import 'package:ufg/core/constants/app_sizes.dart';
 import 'package:ufg/core/widgets/app_card.dart';
 import 'package:ufg/core/widgets/section_header.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
+import 'package:ufg/features/auth/presentation/bloc/auth_state.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -39,6 +41,34 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _logout() {
+    // Show logout confirmation dialog
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              authBloc.add(AuthLoggedOut() as AuthEvent);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColorConstants.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _refreshHomeData() async {
@@ -156,7 +186,7 @@ class _StickyHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSizes.spacingXxs),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () => _logout(),
                   icon: Icon(
                     AppIcons.settings.outline,
                     color: colorScheme.primary,
