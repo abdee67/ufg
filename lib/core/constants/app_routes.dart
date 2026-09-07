@@ -37,6 +37,7 @@ class AppRoutes {
   static const String loanRepay = '/loans/repay/:id';
   static const String loanGuarantors = '/loans/guarantors';
   static const String loanExtension = '/loans/extension/:id';
+  static const String outsiderLoanApply = '/outsider-loan/apply';
 
   static const String logout = '/logout';
 }

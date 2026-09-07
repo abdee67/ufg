@@ -23,6 +23,7 @@ import 'package:ufg/features/loans/presentation/pages/loan_detail_page.dart';
 import 'package:ufg/features/loans/presentation/pages/loan_extension_page.dart';
 import 'package:ufg/features/loans/presentation/pages/loan_repayment_page.dart';
 import 'package:ufg/features/loans/presentation/pages/loans_page.dart';
+import 'package:ufg/features/loans/presentation/pages/outsider_loan_application_page.dart';
 import 'package:ufg/features/savings/domain/entities/savings_obligation_entity.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/features/savings/presentation/pages/savings_history_page.dart';
@@ -45,7 +46,8 @@ class AppRouter {
     routes: [
       GoRoute(
         path: AppRoutes.initialRoute,
-        builder: (context, state) => SessionCheckingSplash(showOnboarding: showOnboarding),
+        builder: (context, state) =>
+            SessionCheckingSplash(showOnboarding: showOnboarding),
       ),
       GoRoute(
         path: AppRoutes.onboardingScreen,
@@ -59,6 +61,13 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.signupScreen,
         builder: (_, _) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.outsiderLoanApply,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getit<LoanBloc>(),
+          child: const OutsiderLoanApplicationPage(),
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -170,18 +179,14 @@ class AppRouter {
         path: AppRoutes.loanDetail,
         builder: (_, state) => BlocProvider(
           create: (_) => getit<LoanBloc>(),
-          child: LoanDetailPage(
-            loanId: state.pathParameters['id'] ?? '',
-          ),
+          child: LoanDetailPage(loanId: state.pathParameters['id'] ?? ''),
         ),
       ),
       GoRoute(
         path: AppRoutes.loanRepay,
         builder: (_, state) => BlocProvider(
           create: (_) => getit<LoanBloc>(),
-          child: LoanRepaymentPage(
-            loanId: state.pathParameters['id'] ?? '',
-          ),
+          child: LoanRepaymentPage(loanId: state.pathParameters['id'] ?? ''),
         ),
       ),
       GoRoute(
@@ -195,9 +200,7 @@ class AppRouter {
         path: AppRoutes.loanExtension,
         builder: (_, state) => BlocProvider(
           create: (_) => getit<LoanBloc>(),
-          child: LoanExtensionPage(
-            loanId: state.pathParameters['id'] ?? '',
-          ),
+          child: LoanExtensionPage(loanId: state.pathParameters['id'] ?? ''),
         ),
       ),
     ],
