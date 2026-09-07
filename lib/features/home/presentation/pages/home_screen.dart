@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_icons.dart';
@@ -8,7 +9,6 @@ import 'package:ufg/core/widgets/app_card.dart';
 import 'package:ufg/core/widgets/section_header.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
-import 'package:ufg/features/auth/presentation/bloc/auth_state.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  void _logout() {
+  void logout() {
     // Show logout confirmation dialog
     showDialog(
       context: context,
@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen>
           ElevatedButton(
             onPressed: () {
               Navigator.of(ctx).pop();
-              authBloc.add(AuthLoggedOut() as AuthEvent);
+              context.read<AuthBloc>().add(SignOutRequested());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorConstants.error,
@@ -108,8 +108,7 @@ class _HomeScreenState extends State<HomeScreen>
                           const _StickyHeader(),
                           const SizedBox(height: AppSizes.spacingXl),
                           _SearchBar(
-                            onTap: () =>
-                                context.push(AppRoutes.searchScreen),
+                            onTap: () => context.push(AppRoutes.searchScreen),
                           ),
                           const SizedBox(height: AppSizes.spacingXl),
                           const _FinanceOverviewSection(),
