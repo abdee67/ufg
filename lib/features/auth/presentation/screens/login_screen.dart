@@ -61,8 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
               if (state is AuthSuccess) {
                 setState(() => _isCheckingMembership = true);
                 context.read<MembershipBloc>().add(
-                      CheckMembershipAfterAuthRequested(),
-                    );
+                  CheckMembershipAfterAuthRequested(),
+                );
               } else if (state is AuthFailure) {
                 setState(() => _isCheckingMembership = false);
                 _message(state.message, true);
@@ -130,15 +130,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   suffixIcon: PasswordVisibilityToggle(
                                     visible: !_obscurePassword,
                                     onToggle: () => setState(
-                                      () => _obscurePassword = !_obscurePassword,
+                                      () =>
+                                          _obscurePassword = !_obscurePassword,
                                     ),
                                   ),
                                 ),
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
-                                    onPressed: () =>
-                                        context.go(AppRoutes.forgotPasswordScreen),
+                                    onPressed: () => context.go(
+                                      AppRoutes.forgotPasswordScreen,
+                                    ),
                                     child: Text(
                                       'Forgot password?',
                                       style: TextStyle(
@@ -159,7 +161,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: AppSizes.spacingL),
                           Center(
                             child: TextButton(
-                              onPressed: () => context.go(AppRoutes.signupScreen),
+                              onPressed: () =>
+                                  context.go(AppRoutes.outsiderLoanApply),
+                              child: Text(
+                                'Need a loan but not a member? Apply as an outsider',
+                                style: TextStyle(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: TextButton(
+                              onPressed: () =>
+                                  context.go(AppRoutes.signupScreen),
                               child: Text(
                                 'New to Unity Finance?  Create an account',
                                 style: TextStyle(
@@ -189,9 +205,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     context.read<AuthBloc>().add(
-          SignInRequested(
-              _emailController.text.trim(), _passwordController.text),
-        );
+      SignInRequested(_emailController.text.trim(), _passwordController.text),
+    );
   }
 
   void _message(String message, bool error) =>
