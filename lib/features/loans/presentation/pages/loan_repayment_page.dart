@@ -2,8 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:mime/mime.dart';
 import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
@@ -49,6 +47,7 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
     if (file != null) {
       final int sizeInByte = await file.length();
       if (sizeInByte > 5 * 1024 * 1024) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -62,6 +61,22 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
         _pickedFile = file;
         _pickedFileSize = sizeInByte;
       });
+    }
+  }
+
+  String _determineMimeType(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
     }
   }
 
@@ -86,7 +101,7 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
       return;
     }
 
-    final mimeType = lookupMimeType(_pickedFile!.path ?? '') ?? 'image/jpeg';
+    final mimeType = _determineMimeType(_pickedFile!.name);
     final int fileSize = _pickedFileSize;
 
     context.read<LoanBloc>().add(
@@ -107,10 +122,6 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currencyFormatter = NumberFormat.currency(
-      symbol: 'ETB ',
-      decimalDigits: 2,
-    );
 
     return Scaffold(
       appBar: const CustomAppBar(

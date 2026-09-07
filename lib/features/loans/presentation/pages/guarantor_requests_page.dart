@@ -11,6 +11,7 @@ import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_event.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_state.dart';
 import 'package:ufg/features/loans/presentation/widgets/guarantor_request_card.dart';
+import 'package:ufg/features/loans/domain/entities/guarantor_request_entity.dart';
 
 class GuarantorRequestsPage extends StatefulWidget {
   const GuarantorRequestsPage({super.key});
@@ -30,7 +31,7 @@ class _GuarantorRequestsPageState extends State<GuarantorRequestsPage> {
     context.read<LoanBloc>().add(LoadGuarantorRequestsRequested());
   }
 
-  void _confirmResponse(String requestId, bool accept) {
+  void _confirmResponse(GuarantorRequestEntity request, bool accept) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -52,7 +53,8 @@ class _GuarantorRequestsPageState extends State<GuarantorRequestsPage> {
               Navigator.of(ctx).pop();
               context.read<LoanBloc>().add(
                 RespondToGuarantorRequestEvent(
-                  guarantorRequestId: requestId,
+                  guarantorRequestId: request.id,
+                  borrowerType: request.borrowerType.name,
                   accept: accept,
                 ),
               );
@@ -164,10 +166,10 @@ class _GuarantorRequestsPageState extends State<GuarantorRequestsPage> {
                   return GuarantorRequestCard(
                     request: req,
                     onAccept: req.isPending
-                        ? () => _confirmResponse(req.id, true)
+                        ? () => _confirmResponse(req, true)
                         : null,
                     onReject: req.isPending
-                        ? () => _confirmResponse(req.id, false)
+                        ? () => _confirmResponse(req, false)
                         : null,
                   );
                 },

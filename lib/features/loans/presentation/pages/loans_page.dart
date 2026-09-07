@@ -351,7 +351,7 @@ class _LoansPageState extends State<LoansPage> {
       ),
       child: ListTile(
         onTap: () => context.push('${AppRoutes.loans}/application/${app.id}'),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

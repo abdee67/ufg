@@ -8,6 +8,7 @@ import 'package:ufg/core/constants/app_sizes.dart';
 import 'package:ufg/core/widgets/custom_app_bar.dart';
 import 'package:ufg/core/widgets/error_state.dart';
 import 'package:ufg/core/widgets/loading_indicator.dart';
+import 'package:ufg/features/loans/domain/entities/guarantor_request_entity.dart';
 import 'package:ufg/features/loans/domain/entities/loan_application_entity.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_event.dart';
@@ -213,6 +214,12 @@ class _LoanApplicationStatusPageState extends State<LoanApplicationStatusPage> {
                   _buildApprovalTimeline(context, app),
 
                   const SizedBox(height: AppSizes.spacingL),
+
+                  // Guarantor Status Card (if outsider loan / guarantor request exists)
+                  if (guarantor != null) ...[
+                    _buildGuarantorCard(context, guarantor),
+                    const SizedBox(height: AppSizes.spacingL),
+                  ],
 
                   // Eligibility Checklist
                   if (eligibility != null) ...[
@@ -423,6 +430,106 @@ class _LoanApplicationStatusPageState extends State<LoanApplicationStatusPage> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuarantorCard(
+    BuildContext context,
+    GuarantorRequestEntity guarantor,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final currencyFormatter =
+        NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+
+    Color statusColor = ColorConstants.warning;
+    String statusText = 'Pending Decision';
+    if (guarantor.isAccepted) {
+      statusColor = ColorConstants.success;
+      statusText = 'Accepted';
+    } else if (guarantor.isRejected) {
+      statusColor = ColorConstants.error;
+      statusText = 'Rejected';
+    } else if (guarantor.status == GuarantorStatus.released) {
+      statusColor = theme.hintColor;
+      statusText = 'Released';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppSizes.spacingL),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    AppIcons.shield.outline,
+                    color: colorScheme.primary,
+                    size: AppSizes.iconS,
+                  ),
+                  const SizedBox(width: AppSizes.spacingXs),
+                  Text(
+                    'Guarantor Status',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.spacingM),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Guaranteed Amount:', style: theme.textTheme.bodySmall),
+              Text(
+                currencyFormatter.format(guarantor.guaranteedAmount),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          if (guarantor.requestedAt != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Requested Date:', style: theme.textTheme.bodySmall),
+                Text(
+                  DateFormat('dd MMM yyyy').format(guarantor.requestedAt!),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:ufg/features/loans/domain/entities/guarantor_request_entity.dart';
+import 'package:ufg/features/loans/domain/entities/guarantor_candidate_entity.dart';
+import 'package:ufg/features/loans/domain/entities/member_loan_limit_entity.dart';
 import 'package:ufg/features/loans/domain/entities/loan_application_entity.dart';
 import 'package:ufg/features/loans/domain/entities/loan_eligibility_result_entity.dart';
 import 'package:ufg/features/loans/domain/entities/loan_entity.dart';
@@ -30,15 +32,16 @@ class LoansDashboardLoaded extends LoanState {
     this.pendingGuarantorRequests = const [],
   });
 
-  LoanEntity? get primaryActiveLoan => activeLoans.isNotEmpty ? activeLoans.first : null;
+  LoanEntity? get primaryActiveLoan =>
+      activeLoans.isNotEmpty ? activeLoans.first : null;
 
   @override
   List<Object?> get props => [
-        activeLoans,
-        applications,
-        products,
-        pendingGuarantorRequests,
-      ];
+    activeLoans,
+    applications,
+    products,
+    pendingGuarantorRequests,
+  ];
 }
 
 class LoanProductsLoaded extends LoanState {
@@ -48,6 +51,30 @@ class LoanProductsLoaded extends LoanState {
 
   @override
   List<Object?> get props => [products];
+}
+
+class MemberLoanLimitLoaded extends LoanState {
+  final MemberLoanLimitEntity limit;
+  const MemberLoanLimitLoaded(this.limit);
+
+  @override
+  List<Object?> get props => [limit];
+}
+
+class LoanGuarantorSearchLoaded extends LoanState {
+  final List<GuarantorCandidateEntity> candidates;
+  const LoanGuarantorSearchLoaded(this.candidates);
+
+  @override
+  List<Object?> get props => [candidates];
+}
+
+class OutsiderLoanProductLoaded extends LoanState {
+  final LoanProductEntity product;
+  const OutsiderLoanProductLoaded(this.product);
+
+  @override
+  List<Object?> get props => [product];
 }
 
 class LoanApplicationDetailLoaded extends LoanState {
@@ -69,10 +96,7 @@ class LoanDetailsLoaded extends LoanState {
   final LoanEntity loan;
   final List<LoanInstallmentEntity> installments;
 
-  const LoanDetailsLoaded({
-    required this.loan,
-    required this.installments,
-  });
+  const LoanDetailsLoaded({required this.loan, required this.installments});
 
   @override
   List<Object?> get props => [loan, installments];
@@ -100,10 +124,7 @@ class LoanActionSuccess extends LoanState {
   final String message;
   final Map<String, dynamic>? data;
 
-  const LoanActionSuccess({
-    required this.message,
-    this.data,
-  });
+  const LoanActionSuccess({required this.message, this.data});
 
   @override
   List<Object?> get props => [message, data];

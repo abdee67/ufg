@@ -11,6 +11,18 @@ class LoadLoansDashboardRequested extends LoanEvent {}
 
 class LoadLoanProductsRequested extends LoanEvent {}
 
+class LoadMemberLoanLimitRequested extends LoanEvent {}
+
+class SearchLoanGuarantorsRequested extends LoanEvent {
+  final String search;
+  const SearchLoanGuarantorsRequested(this.search);
+
+  @override
+  List<Object?> get props => [search];
+}
+
+class LoadActiveOutsiderLoanProductRequested extends LoanEvent {}
+
 class SubmitLoanApplicationRequested extends LoanEvent {
   final String loanProductId;
   final double requestedAmount;
@@ -26,11 +38,42 @@ class SubmitLoanApplicationRequested extends LoanEvent {
 
   @override
   List<Object?> get props => [
-        loanProductId,
-        requestedAmount,
-        purpose,
-        guarantorMemberId,
-      ];
+    loanProductId,
+    requestedAmount,
+    purpose,
+    guarantorMemberId,
+  ];
+}
+
+class SubmitOutsiderLoanApplicationRequested extends LoanEvent {
+  final String loanProductId;
+  final String fullName;
+  final String phone;
+  final String address;
+  final double requestedAmount;
+  final String purpose;
+  final String guarantorMemberId;
+
+  const SubmitOutsiderLoanApplicationRequested({
+    required this.loanProductId,
+    required this.fullName,
+    required this.phone,
+    required this.address,
+    required this.requestedAmount,
+    required this.purpose,
+    required this.guarantorMemberId,
+  });
+
+  @override
+  List<Object?> get props => [
+    loanProductId,
+    fullName,
+    phone,
+    address,
+    requestedAmount,
+    purpose,
+    guarantorMemberId,
+  ];
 }
 
 class CancelLoanApplicationRequested extends LoanEvent {
@@ -77,15 +120,24 @@ class LoadGuarantorRequestsRequested extends LoanEvent {}
 
 class RespondToGuarantorRequestEvent extends LoanEvent {
   final String guarantorRequestId;
+  final String borrowerType;
   final bool accept;
+  final String? rejectionReason;
 
   const RespondToGuarantorRequestEvent({
     required this.guarantorRequestId,
+    required this.borrowerType,
     required this.accept,
+    this.rejectionReason,
   });
 
   @override
-  List<Object?> get props => [guarantorRequestId, accept];
+  List<Object?> get props => [
+    guarantorRequestId,
+    borrowerType,
+    accept,
+    rejectionReason,
+  ];
 }
 
 class LoadLoanDetailsRequested extends LoanEvent {
@@ -137,14 +189,14 @@ class SubmitLoanRepaymentRequested extends LoanEvent {
 
   @override
   List<Object?> get props => [
-        loanId,
-        amount,
-        paymentMethodCode,
-        externalReference,
-        filePath,
-        fileName,
-        mimeType,
-        fileSizeBytes,
-        allocations,
-      ];
+    loanId,
+    amount,
+    paymentMethodCode,
+    externalReference,
+    filePath,
+    fileName,
+    mimeType,
+    fileSizeBytes,
+    allocations,
+  ];
 }
