@@ -21,7 +21,6 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  late AuthBloc authBloc;
 
   @override
   void initState() {
@@ -105,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
-                          const _StickyHeader(),
+                          _StickyHeader(onLogoutTap: logout),
                           const SizedBox(height: AppSizes.spacingXl),
                           _SearchBar(
                             onTap: () => context.push(AppRoutes.searchScreen),
@@ -127,7 +126,8 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 class _StickyHeader extends StatelessWidget {
-  const _StickyHeader();
+  final VoidCallback onLogoutTap;
+  const _StickyHeader({required this.onLogoutTap});
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +185,7 @@ class _StickyHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSizes.spacingXxs),
                 IconButton(
-                  onPressed: () => logout(),
+                  onPressed: onLogoutTap,
                   icon: Icon(
                     AppIcons.settings.outline,
                     color: colorScheme.primary,
