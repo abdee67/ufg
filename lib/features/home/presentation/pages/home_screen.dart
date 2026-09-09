@@ -7,8 +7,15 @@ import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
 import 'package:ufg/core/widgets/app_card.dart';
 import 'package:ufg/core/widgets/section_header.dart';
+import 'package:ufg/core/widgets/amount_text.dart';
+import 'package:ufg/core/widgets/loading_indicator.dart';
+import 'package:ufg/core/widgets/error_state.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
+import 'package:ufg/features/home/presentation/bloc/home_bloc.dart';
+import 'package:ufg/features/home/presentation/bloc/home_event.dart';
+import 'package:ufg/features/home/presentation/bloc/home_state.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,33 +24,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
+class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    Future.microtask(_refreshHomeData);
-    _animationController.forward();
+    context.read<HomeBloc>().add(const FetchHomeData());
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void logout() {
-    // Show logout confirmation dialog
+  void _logout() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -70,10 +58,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Future<void> _refreshHomeData() async {
-    if (!mounted) return;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -85,38 +69,74 @@ class _HomeScreenState extends State<HomeScreen>
         bottom: false,
         child: RefreshIndicator(
           color: colorScheme.primary,
-          backgroundColor: colorScheme.surface,
-          onRefresh: _refreshHomeData,
-          child: AnimatedBuilder(
-            animation: _fadeAnimation,
-            builder: (context, child) {
-              return Opacity(
-                opacity: _fadeAnimation.value,
-                child: CustomScrollView(
+          onRefresh: () async {
+            context.read<HomeBloc>().add(const FetchHomeData(refresh: true));
+          },
+          child: BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, state) {
+              if (state is HomeLoading) {
+                return const Center(child: LoadingIndicator());
+              }
+
+              if (state is HomeLoadFailure) {
+                return ErrorState(
+                  message: state.message,
+                  onRetry: () =>
+                      context.read<HomeBloc>().add(const FetchHomeData()),
+                );
+              }
+
+              if (state is HomeLoadSuccess) {
+                return CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSizes.spacingL,
-                        AppSizes.spacingM,
-                        AppSizes.spacingL,
-                        AppSizes.spacingHero + AppSizes.spacingM,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.spacingL,
+                        vertical: AppSizes.spacingM,
                       ),
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
-                          _StickyHeader(onLogoutTap: logout),
+                          _StickyHeader(
+                            userName: state.profile.fullName,
+                            onLogoutTap: _logout,
+                          ),
                           const SizedBox(height: AppSizes.spacingXl),
                           _SearchBar(
                             onTap: () => context.push(AppRoutes.searchScreen),
                           ),
                           const SizedBox(height: AppSizes.spacingXl),
-                          const _FinanceOverviewSection(),
+                          _QuickActionsSection(),
+                          const SizedBox(height: AppSizes.spacingXl),
+                          _SavingsCard(
+                            totalSavings:
+                                state.savingsSummary?.totalSavings ?? 0,
+                            nextDue: state
+                                .savingsSummary?.currentObligation?.dueDate
+                                .day
+                                .toString(),
+                            monthlyContribution: state.savingsSummary
+                                    ?.currentObligation?.requiredAmount ??
+                                0,
+                          ).animate().fadeIn(duration: 400.ms).slideY(
+                                begin: 0.1,
+                                curve: Curves.easeOutQuad,
+                              ),
+                          const SizedBox(height: AppSizes.spacingXl),
+                          _RecentActivitySection(
+                            activities: state.recentActivity,
+                          ),
+                          const SizedBox(
+                            height: AppSizes.spacingHero + AppSizes.spacingM,
+                          ),
                         ]),
                       ),
                     ),
                   ],
-                ),
-              );
+                );
+              }
+
+              return const SizedBox.shrink();
             },
           ),
         ),
@@ -126,8 +146,13 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 class _StickyHeader extends StatelessWidget {
+  final String userName;
   final VoidCallback onLogoutTap;
-  const _StickyHeader({required this.onLogoutTap});
+
+  const _StickyHeader({
+    required this.userName,
+    required this.onLogoutTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -140,80 +165,41 @@ class _StickyHeader extends StatelessWidget {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'Unity Finance',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                letterSpacing: -0.5,
-              ),
-            ),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        AppIcons.notifications.outline,
-                        color: colorScheme.primary,
-                        size: AppSizes.iconM,
-                      ),
-                      splashRadius: 20,
-                      tooltip: 'Notifications',
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 4,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: ColorConstants.brandGreen,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.surface,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: AppSizes.spacingXxs),
-                IconButton(
-                  onPressed: onLogoutTap,
-                  icon: Icon(
-                    AppIcons.settings.outline,
-                    color: colorScheme.primary,
-                    size: AppSizes.iconM,
+                Text(
+                  'Good ${_getTimeGreeting()},',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: secondaryText,
+                    fontWeight: FontWeight.w500,
                   ),
-                  splashRadius: 20,
-                  tooltip: 'Settings',
+                ),
+                Text(
+                  userName,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _getTimeIcon(),
-              color: secondaryText,
-              size: AppSizes.iconS - 2,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'Good ${_getTimeGreeting()}',
-              style: TextStyle(
-                color: secondaryText,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              children: [
+                _NotificationIcon(colorScheme: colorScheme),
+                const SizedBox(width: AppSizes.spacingS),
+                IconButton(
+                  onPressed: onLogoutTap,
+                  icon: Icon(
+                    AppIcons.logout.outline,
+                    color: colorScheme.primary,
+                    size: AppSizes.iconM,
+                  ),
+                  tooltip: 'Logout',
+                ),
+              ],
             ),
           ],
         ),
@@ -227,11 +213,46 @@ class _StickyHeader extends StatelessWidget {
     if (hour < 17) return 'afternoon';
     return 'evening';
   }
+}
 
-  IconData _getTimeIcon() {
-    final hour = DateTime.now().hour;
-    if (hour < 17) return AppIcons.sun.outline;
-    return AppIcons.moon.outline;
+class _NotificationIcon extends StatelessWidget {
+  final ColorScheme colorScheme;
+  const _NotificationIcon({required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            shape: BoxShape.circle,
+            border: Border.all(color: colorScheme.outlineVariant),
+          ),
+          child: IconButton(
+            onPressed: () {},
+            icon: Icon(
+              AppIcons.notifications.outline,
+              color: colorScheme.primary,
+              size: AppSizes.iconM,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 12,
+          right: 12,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: ColorConstants.error,
+              shape: BoxShape.circle,
+              border: Border.all(color: colorScheme.surface, width: 1.5),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -245,151 +266,103 @@ class _SearchBar extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Material(
-      color: colorScheme.surface,
+    return InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-      elevation: 2,
-      shadowColor: colorScheme.shadow,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.spacingM,
-            vertical: AppSizes.spacingM,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-            border: Border.all(color: theme.dividerColor),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppSizes.spacingXs),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusChip),
-                ),
-                child: Icon(
-                  AppIcons.search.outline,
-                  color: colorScheme.primary,
-                  size: AppSizes.iconS,
-                ),
-              ),
-              const SizedBox(width: AppSizes.spacingS),
-              Expanded(
-                child: Text(
-                  'Search savings, loans, or transactions...',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.65),
-                    fontWeight: FontWeight.w500,
-                  ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.spacingM,
+          vertical: AppSizes.spacingM,
+        ),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+          border: Border.all(color: colorScheme.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              AppIcons.search.outline,
+              color: colorScheme.primary,
+              size: AppSizes.iconS,
+            ),
+            const SizedBox(width: AppSizes.spacingS),
+            Expanded(
+              child: Text(
+                'Search savings, loans...',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.spacingS,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      AppIcons.filter.outline,
-                      color: colorScheme.primary,
-                      size: AppSizes.iconXs,
-                    ),
-                    const SizedBox(width: AppSizes.spacingXxs),
-                    Text(
-                      'Filters',
-                      style: TextStyle(
-                        color: colorScheme.primary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+            Icon(
+              AppIcons.filter.outline,
+              color: colorScheme.primary,
+              size: AppSizes.iconS,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _FinanceOverviewSection extends StatelessWidget {
-  const _FinanceOverviewSection();
-
+class _QuickActionsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'Quick Actions'),
-        const SizedBox(height: AppSizes.spacingS),
+        const SectionHeader(title: 'Quick Actions'),
+        const SizedBox(height: AppSizes.spacingM),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _ActionCard(
+            _ActionItem(
               icon: AppIcons.savings.outline,
               label: 'Savings',
               color: ColorConstants.brandGreen,
               onTap: () => context.push(AppRoutes.savings),
             ),
-            const SizedBox(width: AppSizes.spacingS),
-            _ActionCard(
+            _ActionItem(
               icon: AppIcons.loans.outline,
               label: 'Loans',
               color: ColorConstants.navyBlue,
               onTap: () => context.push(AppRoutes.loans),
             ),
-            const SizedBox(width: AppSizes.spacingS),
-            _ActionCard(
+            _ActionItem(
               icon: AppIcons.payments.outline,
-              label: 'Payments',
-              color: colorScheme.primary,
+              label: 'Pay',
+              color: Colors.orange,
               onTap: () {},
             ),
-            const SizedBox(width: AppSizes.spacingS),
-            _ActionCard(
+            _ActionItem(
               icon: AppIcons.members.outline,
               label: 'Members',
-              color: ColorConstants.navyBlue,
+              color: Colors.purple,
               onTap: () {},
             ),
           ],
         ),
-        const SizedBox(height: AppSizes.spacingXl),
-        InkWell(
-          onTap: () => context.push(AppRoutes.savings),
-          borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-          child: const _SavingsCard(),
-        ),
-        const SizedBox(height: AppSizes.spacingM),
-        const _RecentActivityCard(),
       ],
     );
   }
 }
 
-class _ActionCard extends StatelessWidget {
+class _ActionItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _ActionCard({
+  const _ActionItem({
     required this.icon,
     required this.label,
     required this.color,
@@ -399,72 +372,68 @@ class _ActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSizes.spacingM,
-            horizontal: 6,
-          ),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-            border: Border.all(color: theme.dividerColor),
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusChip),
-                ),
-                child: Icon(icon, color: color, size: AppSizes.iconM - 2),
-              ),
-              const SizedBox(height: AppSizes.spacingXs),
-              Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSizes.radiusS),
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSizes.radiusS),
+            ),
+            child: Icon(icon, color: color, size: AppSizes.iconM),
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
 
 class _SavingsCard extends StatelessWidget {
-  const _SavingsCard();
+  final double totalSavings;
+  final double monthlyContribution;
+  final String? nextDue;
+
+  const _SavingsCard({
+    required this.totalSavings,
+    required this.monthlyContribution,
+    this.nextDue,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final onGradient = ColorConstants.onBrand;
+    final theme = Theme.of(context);
+    final onBrand = ColorConstants.onBrand;
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.spacingL),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            ColorConstants.navGradientStart,
-            ColorConstants.navGradientEnd,
+            ColorConstants.navyBlue,
+            ColorConstants.navyBlue.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         boxShadow: [
           BoxShadow(
             color: ColorConstants.navyBlue.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -475,36 +444,56 @@ class _SavingsCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total Savings',
-                style: TextStyle(
-                  color: onGradient,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                'Total Balance',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: onBrand.withValues(alpha: 0.7),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              Icon(
-                AppIcons.savings.outline,
-                color: onGradient.withValues(alpha: 0.9),
-                size: AppSizes.iconS,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: onBrand.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  AppIcons.wallet.outline,
+                  color: onBrand,
+                  size: AppSizes.iconS,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: AppSizes.spacingXs),
-          Text(
-            'ETB 0.00',
-            style: TextStyle(
-              color: onGradient,
-              fontSize: 28,
+          const SizedBox(height: 8),
+          AmountText(
+            amount: totalSavings,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: onBrand,
               fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: AppSizes.spacingM),
+          const SizedBox(height: 24),
           Row(
             children: [
-              _MetricChip(label: 'This month', value: 'ETB 0.00'),
-              const SizedBox(width: AppSizes.spacingS),
-              _MetricChip(label: 'Next due', value: '12th'),
+              Expanded(
+                child: _MetricItem(
+                  label: 'This Month',
+                  value: monthlyContribution,
+                  isAmount: true,
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 30,
+                color: onBrand.withValues(alpha: 0.2),
+              ),
+              Expanded(
+                child: _MetricItem(
+                  label: 'Next Due',
+                  value: nextDue ?? '-',
+                  isAmount: false,
+                ),
+              ),
             ],
           ),
         ],
@@ -513,151 +502,164 @@ class _SavingsCard extends StatelessWidget {
   }
 }
 
-class _MetricChip extends StatelessWidget {
+class _MetricItem extends StatelessWidget {
   final String label;
-  final String value;
+  final dynamic value;
+  final bool isAmount;
 
-  const _MetricChip({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final onGradient = ColorConstants.onBrand;
-
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(AppSizes.spacingS),
-        decoration: BoxDecoration(
-          color: onGradient.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(AppSizes.radiusChip),
-          border: Border.all(
-            color: onGradient.withValues(alpha: 0.25),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: onGradient.withValues(alpha: 0.7),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: AppSizes.spacingXxs),
-            Text(
-              value,
-              style: TextStyle(
-                color: onGradient,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentActivityCard extends StatelessWidget {
-  const _RecentActivityCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionHeader(
-            title: 'Recent Activity',
-            trailing: 'View all',
-            onTrailingTap: () {},
-          ),
-          const SizedBox(height: AppSizes.spacingS),
-          _ActivityRow(
-            icon: AppIcons.savings.outline,
-            title: 'Monthly savings',
-            subtitle: 'Pending contribution',
-            amount: 'ETB 2,000',
-            color: ColorConstants.brandGreen,
-          ),
-          const Divider(height: AppSizes.spacingXl),
-          _ActivityRow(
-            icon: AppIcons.walletEmpty.outline,
-            title: 'No recent transactions',
-            subtitle: 'Activity will appear here',
-            amount: '',
-            color: theme.colorScheme.primary,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActivityRow extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String amount;
-  final Color color;
-
-  const _ActivityRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.amount,
-    required this.color,
+  const _MetricItem({
+    required this.label,
+    required this.value,
+    required this.isAmount,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final onBrand = ColorConstants.onBrand;
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(AppSizes.radiusChip),
-          ),
-          child: Icon(icon, color: color, size: AppSizes.iconS),
-        ),
-        const SizedBox(width: AppSizes.spacingS),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: onBrand.withValues(alpha: 0.6),
           ),
         ),
-        if (amount.isNotEmpty)
+        const SizedBox(height: 4),
+        if (isAmount)
+          AmountText(
+            amount: value as num,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: onBrand,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        else
           Text(
-            amount,
-            style: theme.textTheme.bodyLarge?.copyWith(
+            value.toString(),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: onBrand,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RecentActivitySection extends StatelessWidget {
+  final List<dynamic> activities;
+
+  const _RecentActivitySection({required this.activities});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(
+          title: 'Recent Activity',
+          trailing: 'View All',
+          onTrailingTap: () => context.push(AppRoutes.savingsHistory),
+        ),
+        const SizedBox(height: AppSizes.spacingM),
+        if (activities.isEmpty)
+          AppCard(
+            padding: AppSizes.spacingL,
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(
+                    AppIcons.walletEmpty.outline,
+                    size: 48,
+                    color: Theme.of(context).dividerColor,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('No recent activity found'),
+                ],
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: activities.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final activity = activities[index];
+              return _ActivityTile(activity: activity);
+            },
+          ),
+      ],
+    );
+  }
+}
+
+class _ActivityTile extends StatelessWidget {
+  final dynamic activity;
+
+  const _ActivityTile({required this.activity});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Based on SavingsHistoryItemEntity
+    final isCredit = activity.isCredit;
+    final color = isCredit ? ColorConstants.brandGreen : ColorConstants.error;
+
+    return AppCard(
+      padding: AppSizes.spacingM,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isCredit ? AppIcons.arrowDown.outline : AppIcons.arrowUp.outline,
+              color: color,
+              size: AppSizes.iconS,
+            ),
+          ),
+          const SizedBox(width: AppSizes.spacingM),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.description ?? 'Transaction',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  activity.timestamp.toString().split(' ')[0], // Simple date
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          AmountText(
+            amount: activity.amount as num,
+            signed: true,
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }

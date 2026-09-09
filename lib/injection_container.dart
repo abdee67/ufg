@@ -60,6 +60,11 @@ import 'package:ufg/features/loans/domain/usecases/submit_outsider_loan_applicat
 import 'package:ufg/features/loans/domain/usecases/submit_loan_repayment_payment.dart';
 import 'package:ufg/features/loans/domain/usecases/upload_loan_payment_proof.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
+import 'package:ufg/features/home/presentation/bloc/home_bloc.dart';
+import 'package:ufg/features/home/data/datasources/home_remote_data_source.dart';
+import 'package:ufg/features/home/data/repositories/home_repository_impl.dart';
+import 'package:ufg/features/home/domain/repositories/home_repository.dart';
+import 'package:ufg/features/home/domain/usecases/search_content.dart';
 
 final getit = GetIt.instance;
 
@@ -206,4 +211,24 @@ void initDependency() {
       uploadLoanPaymentProof: getit(),
     ),
   );
+
+  // Home bloc
+  getit.registerFactory(
+    () => HomeBloc(
+      getCurrentProfile: getit(),
+      getSavingsSummary: getit(),
+      getSavingsHistory: getit(),
+      getMyLoans: getit(),
+      searchContent: getit(),
+    ),
+  );
+
+  //================== injecting search (Home feature) ===================
+  getit.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(),
+  );
+  getit.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(remoteDataSource: getit()),
+  );
+  getit.registerLazySingleton(() => SearchContent(getit()));
 }

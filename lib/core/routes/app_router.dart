@@ -12,7 +12,9 @@ import 'package:ufg/features/auth/presentation/screens/login_screen.dart';
 import 'package:ufg/features/auth/presentation/screens/signup_screen.dart';
 import 'package:ufg/features/auth/presentation/widgets/session_checking_splash.dart';
 import 'package:ufg/features/dashboard/dashboard_wrapper.dart';
+import 'package:ufg/features/home/presentation/bloc/home_bloc.dart';
 import 'package:ufg/features/home/presentation/pages/home_screen.dart';
+import 'package:ufg/features/home/presentation/pages/search_screen.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_application_page.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_status_page.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
@@ -69,6 +71,13 @@ class AppRouter {
           child: const OutsiderLoanApplicationPage(),
         ),
       ),
+      GoRoute(
+        path: AppRoutes.searchScreen,
+        builder: (context, state) => BlocProvider(
+          create: (_) => getit<HomeBloc>(),
+          child: const SearchScreen(),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return DashboardWrapper(navigationShell: navigationShell);
@@ -78,7 +87,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.homeScreen,
-                builder: (_, _) => const HomeScreen(),
+                builder: (_, _) => BlocProvider(
+                  create: (_) => getit<HomeBloc>(),
+                  child: const HomeScreen(),
+                ),
               ),
             ],
           ),

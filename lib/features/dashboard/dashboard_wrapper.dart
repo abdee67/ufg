@@ -12,6 +12,8 @@ class DashboardWrapper extends StatelessWidget {
   static const _items = [
     BottomNavItemConfig(label: 'Home', icon: AppIcons.home),
     BottomNavItemConfig(label: 'Savings', icon: AppIcons.savings, route: AppRoutes.savings),
+    BottomNavItemConfig(label: 'Loans', icon: AppIcons.loans, route: AppRoutes.loans),
+
     BottomNavItemConfig(label: 'Membership', icon: AppIcons.members, route: AppRoutes.membershipStatus),
   ];
 
