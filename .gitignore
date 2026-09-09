@@ -49,5 +49,8 @@ app.*.map.json
 
 # Hide implementation plan md files in root
 *_Implementation_Plan.md
+*_Implementation_Prompt.md
 Unity_Finance_*_Migration_Plan.md
+*_MVP_*.md
+Unity_Finance_Full_Product_*.md
 
