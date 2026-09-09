@@ -218,6 +218,8 @@ exception when duplicate_object then null; end $$;
 -- 2. Utility functions
 -- ---------------------------------------------------------------------------
 
+create sequence if not exists private.reference_seq;
+
 create or replace function private.set_updated_at()
 returns trigger
 language plpgsql
@@ -233,9 +235,7 @@ returns text
 language plpgsql
 as $$
 begin
-  return upper(p_prefix) || '-' ||
-         to_char(clock_timestamp(), 'YYYYMMDDHH24MISSMS') || '-' ||
-         upper(substr(encode(gen_random_bytes(4), 'hex'), 1, 8));
+  return upper(p_prefix) || '-' || lpad(nextval('private.reference_seq')::text, 6, '0');
 end;
 $$;
 
