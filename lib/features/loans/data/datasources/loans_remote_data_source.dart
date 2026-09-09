@@ -138,8 +138,9 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
           )
           .toList();
     } on PostgrestException catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('RPC get_my_member_loan_applications_v2 error: ${e.message}');
+      }
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
@@ -219,8 +220,9 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
       }
       return Map<String, dynamic>.from(response as Map);
     } on PostgrestException catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('RPC submit_member_loan_application_v2 error: ${e.message}');
+      }
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
@@ -241,8 +243,9 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
         Map<String, dynamic>.from(response as Map),
       );
     } on PostgrestException catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('RPC get_my_member_loan_limit_v2 error: ${e.message}');
+      }
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
@@ -269,8 +272,9 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
           .where((candidate) => candidate.memberId.isNotEmpty)
           .toList();
     } on PostgrestException catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('RPC search_outsider_loan_guarantors error: ${e.message}');
+      }
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
@@ -291,8 +295,9 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
         Map<String, dynamic>.from(response as Map),
       );
     } on PostgrestException catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('RPC get_active_outsider_loan_product_v2 error: ${e.message}');
+      }
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
@@ -330,8 +335,9 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
       }
       return Map<String, dynamic>.from(response as Map);
     } on PostgrestException catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('RPC submit_outsider_loan_application_v2 error: ${e.message}');
+      }
       throw AuthExceptions(message: e.message);
     } catch (e) {
       if (e is AuthExceptions) rethrow;
