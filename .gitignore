@@ -47,7 +47,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Hide implementation plan md files in root
 *_Implementation_Plan.md
 *_Implementation_Prompt.md
 Unity_Finance_*_Migration_Plan.md
