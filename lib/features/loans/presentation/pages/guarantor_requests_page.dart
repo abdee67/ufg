@@ -32,30 +32,58 @@ class _GuarantorRequestsPageState extends State<GuarantorRequestsPage> {
   }
 
   void _confirmResponse(GuarantorRequestEntity request, bool accept) {
+    final rejectionReasonController = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
           accept ? 'Accept Guarantee Request' : 'Decline Guarantee Request',
         ),
-        content: Text(
-          accept
-              ? 'By accepting, you electronically agree to act as guarantor. If the borrower defaults, eligible savings may be utilized. You cannot guarantee another outsider loan while this is active.'
-              : 'Are you sure you want to decline this guarantee request?',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              accept
+                  ? 'By accepting, you electronically agree to act as guarantor. If the borrower defaults, eligible savings may be utilized. You cannot guarantee another outsider loan while this is active.'
+                  : 'Are you sure you want to decline this guarantee request?',
+            ),
+            if (!accept) ...[
+              const SizedBox(height: AppSizes.spacingM),
+              TextField(
+                controller: rejectionReasonController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Reason (optional)',
+                  hintText: 'Briefly explain why you are declining',
+                ),
+              ),
+            ],
+          ],
         ),
+        // A rejection reason is optional, but collecting one makes the
+        // electronic decision auditable without blocking a legitimate decline.
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () {
+              rejectionReasonController.dispose();
+              Navigator.of(ctx).pop();
+            },
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
+              final rejectionReason = rejectionReasonController.text.trim();
+              rejectionReasonController.dispose();
               Navigator.of(ctx).pop();
               context.read<LoanBloc>().add(
                 RespondToGuarantorRequestEvent(
                   guarantorRequestId: request.id,
                   borrowerType: request.borrowerType.name,
                   accept: accept,
+                  rejectionReason: accept || rejectionReason.isEmpty
+                      ? null
+                      : rejectionReason,
                 ),
               );
             },

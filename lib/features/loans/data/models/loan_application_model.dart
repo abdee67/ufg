@@ -49,13 +49,17 @@ class LoanApplicationModel extends LoanApplicationEntity {
   factory LoanApplicationModel.fromJson(Map<String, dynamic> json) {
     LoanProductModel? product;
     if (json['product'] != null && json['product'] is Map) {
-      product = LoanProductModel.fromJson(Map<String, dynamic>.from(json['product'] as Map));
+      product = LoanProductModel.fromJson(
+        Map<String, dynamic>.from(json['product'] as Map),
+      );
     }
 
     int approvalCount = 0;
     if (json['approvals'] != null && json['approvals'] is List) {
       final list = json['approvals'] as List;
-      approvalCount = list.where((a) => a is Map && a['decision'] == 'approved').length;
+      approvalCount = list
+          .where((a) => a is Map && a['decision'] == 'approved')
+          .length;
     } else if (json['approved_count'] != null) {
       approvalCount = (json['approved_count'] as num).toInt();
     }
@@ -77,9 +81,15 @@ class LoanApplicationModel extends LoanApplicationEntity {
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
-      submittedAt: json['submitted_at'] != null ? DateTime.tryParse(json['submitted_at'] as String) : null,
-      reviewedAt: json['reviewed_at'] != null ? DateTime.tryParse(json['reviewed_at'] as String) : null,
-      approvedAt: json['approved_at'] != null ? DateTime.tryParse(json['approved_at'] as String) : null,
+      submittedAt: json['submitted_at'] != null
+          ? DateTime.tryParse(json['submitted_at'] as String)
+          : null,
+      reviewedAt: json['reviewed_at'] != null
+          ? DateTime.tryParse(json['reviewed_at'] as String)
+          : null,
+      approvedAt: json['approved_at'] != null
+          ? DateTime.tryParse(json['approved_at'] as String)
+          : null,
       product: product,
       approvalCount: approvalCount,
     );

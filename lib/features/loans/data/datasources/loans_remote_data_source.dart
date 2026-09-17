@@ -453,7 +453,7 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
       );
     } on PostgrestException catch (e) {
       if (kDebugMode) {
-        print('RPC respond_to_loan_guarantor_request error: ${e.message}');
+        print('RPC respond_to_*_loan_guarantor_request_v2 error: ${e.message}');
       }
       throw AuthExceptions(message: e.message);
     } catch (e) {

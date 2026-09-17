@@ -22,7 +22,10 @@ class GuarantorRequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currencyFormatter = NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+    final currencyFormatter = NumberFormat.currency(
+      symbol: 'ETB ',
+      decimalDigits: 2,
+    );
     final isDark = theme.brightness == Brightness.dark;
 
     final isPending = request.isPending;
@@ -47,11 +50,17 @@ class GuarantorRequestCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(AppIcons.user.outline, size: AppSizes.iconS, color: colorScheme.primary),
+                  Icon(
+                    AppIcons.user.outline,
+                    size: AppSizes.iconS,
+                    color: colorScheme.primary,
+                  ),
                   const SizedBox(width: AppSizes.spacingXs),
                   Text(
                     'Borrower Guarantee',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -59,13 +68,36 @@ class GuarantorRequestCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSizes.spacingM),
-          _detailRow('Borrower:', request.borrowerName ?? 'Outsider Applicant', theme, isBold: true),
-          if (request.borrowerPhone != null && request.borrowerPhone!.isNotEmpty)
+          _detailRow(
+            'Borrower:',
+            request.borrowerName ?? 'Outsider Applicant',
+            theme,
+            isBold: true,
+          ),
+          if (request.borrowerPhone != null &&
+              request.borrowerPhone!.isNotEmpty)
             _detailRow('Phone:', request.borrowerPhone!, theme),
-          _detailRow('Requested Loan:', currencyFormatter.format(request.requestedLoanAmount), theme),
-          _detailRow('One-Time Fee (15%):', currencyFormatter.format(request.serviceChargeAmount), theme),
-          _detailRow('Total Repayment:', currencyFormatter.format(request.totalRepayment), theme, isHighlight: true),
-          _detailRow('Repayment Period:', '${request.termMonths} Months', theme),
+          _detailRow(
+            'Requested Loan:',
+            currencyFormatter.format(request.requestedLoanAmount),
+            theme,
+          ),
+          _detailRow(
+            'One-Time Service Charge:',
+            currencyFormatter.format(request.serviceChargeAmount),
+            theme,
+          ),
+          _detailRow(
+            'Total Repayment:',
+            currencyFormatter.format(request.totalRepayment),
+            theme,
+            isHighlight: true,
+          ),
+          _detailRow(
+            'Repayment Period:',
+            '${request.termMonths} Months',
+            theme,
+          ),
           const SizedBox(height: AppSizes.spacingS),
           const Divider(height: 1),
           const SizedBox(height: AppSizes.spacingS),
@@ -74,19 +106,27 @@ class GuarantorRequestCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: ColorConstants.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSizes.radiusS),
-              border: Border.all(color: ColorConstants.warning.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: ColorConstants.warning.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(AppIcons.warning.outline, size: 16, color: ColorConstants.warning),
+                Icon(
+                  AppIcons.warning.outline,
+                  size: 16,
+                  color: ColorConstants.warning,
+                ),
                 const SizedBox(width: AppSizes.spacingXs),
                 Expanded(
                   child: Text(
                     'As a guarantor, you agree that if the borrower defaults after 60 days, recovery may be initiated from your eligible savings/security. You may only guarantee 1 active outsider loan at a time.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 11,
-                      color: isDark ? ColorConstants.textSecondaryDark : const Color(0xFF9A6B00),
+                      color: isDark
+                          ? ColorConstants.textSecondaryDark
+                          : const Color(0xFF9A6B00),
                     ),
                   ),
                 ),
@@ -102,7 +142,9 @@ class GuarantorRequestCard extends StatelessWidget {
                     onPressed: onReject,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: ColorConstants.error,
-                      side: BorderSide(color: ColorConstants.error.withValues(alpha: 0.5)),
+                      side: BorderSide(
+                        color: ColorConstants.error.withValues(alpha: 0.5),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
                     child: const Text('Decline'),
@@ -129,7 +171,13 @@ class GuarantorRequestCard extends StatelessWidget {
     );
   }
 
-  Widget _detailRow(String label, String value, ThemeData theme, {bool isBold = false, bool isHighlight = false}) {
+  Widget _detailRow(
+    String label,
+    String value,
+    ThemeData theme, {
+    bool isBold = false,
+    bool isHighlight = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
@@ -139,7 +187,9 @@ class GuarantorRequestCard extends StatelessWidget {
           Text(
             value,
             style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: isBold || isHighlight ? FontWeight.bold : FontWeight.w600,
+              fontWeight: isBold || isHighlight
+                  ? FontWeight.bold
+                  : FontWeight.w600,
               color: isHighlight ? theme.colorScheme.primary : null,
             ),
           ),
