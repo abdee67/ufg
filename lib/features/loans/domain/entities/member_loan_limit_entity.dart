@@ -7,13 +7,20 @@ class MemberLoanLimitEntity extends Equatable {
   final double totalSavings;
   final double maximumLoanAmount;
   final double globalCap;
+  final int paidSavingMonths;
+  final int requiredSavingMonths;
 
   const MemberLoanLimitEntity({
     required this.memberId,
     required this.totalSavings,
     required this.maximumLoanAmount,
     required this.globalCap,
+    this.paidSavingMonths = 0,
+    this.requiredSavingMonths = 2,
   });
+
+  bool get meetsMinimumSavingHistory =>
+      paidSavingMonths >= requiredSavingMonths;
 
   @override
   List<Object?> get props => [
@@ -21,5 +28,7 @@ class MemberLoanLimitEntity extends Equatable {
     totalSavings,
     maximumLoanAmount,
     globalCap,
+    paidSavingMonths,
+    requiredSavingMonths,
   ];
 }

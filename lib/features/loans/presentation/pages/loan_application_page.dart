@@ -62,6 +62,29 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
   }
 
   void _submit() {
+    if (_memberLoanLimit == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Checking your loan eligibility. Please try again shortly.'),
+        ),
+      );
+      return;
+    }
+
+    if (!_memberLoanLimit!.meetsMinimumSavingHistory) {
+      final required = _memberLoanLimit!.requiredSavingMonths;
+      final paid = _memberLoanLimit!.paidSavingMonths;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'You need $required paid savings months before applying. You currently have $paid.',
+          ),
+          backgroundColor: ColorConstants.error,
+        ),
+      );
+      return;
+    }
+
     if (_selectedProduct == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a loan product.')),
@@ -159,6 +182,8 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
           }
 
           final isSubmitting = state is LoanActionInProgress;
+          final savingHistoryReady =
+              _memberLoanLimit?.meetsMinimumSavingHistory ?? false;
           final productCap = _selectedProduct?.maxAmount ?? 20000.0;
           final maxLimit = _memberLoanLimit == null
               ? productCap
@@ -367,7 +392,9 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
                   PrimaryButton(
                     label: 'Submit Loan Application',
                     isLoading: isSubmitting,
-                    onPressed: isSubmitting ? null : _submit,
+                    onPressed: isSubmitting || !savingHistoryReady
+                        ? null
+                        : _submit,
                   ),
                   const SizedBox(height: AppSizes.spacingXl),
                 ],
@@ -413,6 +440,18 @@ class _MemberLoanLimitCard extends StatelessWidget {
           Text(
             'Calculated from savings of ${money.format(limit.totalSavings)}. The server verifies this again when you submit.',
             style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSizes.spacingS),
+          Text(
+            limit.meetsMinimumSavingHistory
+                ? 'Savings history complete: ${limit.paidSavingMonths}/${limit.requiredSavingMonths} paid months.'
+                : 'Loan applications require ${limit.requiredSavingMonths} paid savings months. You currently have ${limit.paidSavingMonths}.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: limit.meetsMinimumSavingHistory
+                  ? ColorConstants.success
+                  : ColorConstants.error,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
