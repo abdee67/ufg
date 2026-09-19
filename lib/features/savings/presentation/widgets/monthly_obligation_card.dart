@@ -76,7 +76,7 @@ class MonthlyObligationCard extends StatelessWidget {
                 ],
               ),
               SavingsStatusChip.fromObligationStatus(
-                obligation.status,
+                obligation.effectiveStatus,
                 colorScheme,
               ),
             ],
@@ -161,11 +161,15 @@ class MonthlyObligationCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(AppIcons.info.outline, color: lateFg, size: AppSizes.iconXs),
+                  Icon(
+                    AppIcons.info.outline,
+                    color: lateFg,
+                    size: AppSizes.iconXs,
+                  ),
                   const SizedBox(width: AppSizes.spacingXs),
                   Expanded(
                     child: Text(
-                      '10% Late Penalty (${Formatters.money(obligation.latePenaltyAmount)}) recorded separately.',
+                      '10% Late Penalty (${Formatters.money(obligation.effectivePenaltyAmount)}) recorded separately.',
                       style: TextStyle(
                         color: lateFg,
                         fontSize: 12,
@@ -183,14 +187,11 @@ class MonthlyObligationCard extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: onPayTap,
-                icon: Icon(
-                  AppIcons.payments.outline,
-                  size: AppSizes.iconS - 2,
-                ),
+                icon: Icon(AppIcons.payments.outline, size: AppSizes.iconS - 2),
                 label: Text(
                   isLate
-                      ? 'Pay Obligation & Penalty (${Formatters.money(obligation.totalDue)})'
-                      : 'Pay Contribution (${Formatters.money(obligation.totalDue)})',
+                      ? 'Pay Obligation & Penalty (${Formatters.money(obligation.effectiveTotalDue)})'
+                      : 'Pay Contribution (${Formatters.money(obligation.effectiveTotalDue)})',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),

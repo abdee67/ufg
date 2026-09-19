@@ -1,12 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum SavingsObligationStatus {
-  pending,
-  partiallyPaid,
-  paid,
-  late,
-  waived,
-}
+enum SavingsObligationStatus { pending, partiallyPaid, paid, late, waived }
 
 class SavingsObligationEntity extends Equatable {
   final String id;
@@ -36,17 +30,44 @@ class SavingsObligationEntity extends Equatable {
   });
 
   bool get isPaid => status == SavingsObligationStatus.paid;
-  bool get isLate => status == SavingsObligationStatus.late;
-  bool get isPending => status == SavingsObligationStatus.pending;
-  bool get isPartiallyPaid => status == SavingsObligationStatus.partiallyPaid;
+  bool get isLate =>
+      status == SavingsObligationStatus.late ||
+      (!isPaid && DateTime.now().isAfter(dueDate));
+  bool get isPending => status == SavingsObligationStatus.pending && !isLate;
+  bool get isPartiallyPaid =>
+      status == SavingsObligationStatus.partiallyPaid && !isLate;
 
-  double get remainingRequired => (requiredAmount - paidAmount).clamp(0.0, double.infinity);
-  bool get hasPenalty => latePenaltyAmount > 0;
+  SavingsObligationStatus get effectiveStatus {
+    if (isPaid) return SavingsObligationStatus.paid;
+    if (isLate) return SavingsObligationStatus.late;
+    return status;
+  }
+
+  double get remainingRequired =>
+      (requiredAmount - paidAmount).clamp(0.0, double.infinity);
+  bool get hasPenalty => isLate || latePenaltyAmount > 0;
+  double get effectivePenaltyAmount => latePenaltyAmount > 0
+      ? latePenaltyAmount
+      : (isLate ? (requiredAmount * 0.10).roundToDouble() : 0.0);
+  double get effectiveTotalDue =>
+      totalDue > (remainingRequired + effectivePenaltyAmount)
+      ? totalDue
+      : (remainingRequired + effectivePenaltyAmount);
 
   String get monthName {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     if (periodMonth >= 1 && periodMonth <= 12) {
       return months[periodMonth - 1];
@@ -58,16 +79,16 @@ class SavingsObligationEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        periodYear,
-        periodMonth,
-        requiredAmount,
-        dueDate,
-        paidAmount,
-        latePenaltyAmount,
-        status,
-        totalDue,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    periodYear,
+    periodMonth,
+    requiredAmount,
+    dueDate,
+    paidAmount,
+    latePenaltyAmount,
+    status,
+    totalDue,
+    createdAt,
+    updatedAt,
+  ];
 }

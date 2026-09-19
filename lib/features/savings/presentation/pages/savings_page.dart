@@ -79,10 +79,7 @@ class _SavingsPageState extends State<SavingsPage> {
             if (state is SavingsLoading) {
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 120),
-                  LoadingIndicator(),
-                ],
+                children: const [SizedBox(height: 120), LoadingIndicator()],
               );
             }
 
@@ -102,26 +99,38 @@ class _SavingsPageState extends State<SavingsPage> {
                       totalSavings: summary.totalSavings,
                       availableToWithdraw: summary.availableToWithdraw,
                       securedSavings: summary.securedSavings,
-                      onContributeTap: () =>
-                          context.push(AppRoutes.savingsPayment),
-                      onWithdrawTap: () =>
-                          context.push(AppRoutes.savingsWithdraw),
+                      onContributeTap: () async {
+                        await context.push(
+                          AppRoutes.savingsPayment,
+                          extra: summary.currentObligation,
+                        );
+                        if (mounted) _refreshData();
+                      },
+                      onWithdrawTap: () async {
+                        await context.push(AppRoutes.savingsWithdraw);
+                        if (mounted) _refreshData();
+                      },
                     ),
                     const SizedBox(height: AppSizes.spacingXl),
                     SectionHeader(
                       title: 'Current Obligation',
                       trailing: 'View All Obligations',
-                      onTrailingTap: () =>
-                          context.push(AppRoutes.savingsObligations),
+                      onTrailingTap: () async {
+                        await context.push(AppRoutes.savingsObligations);
+                        if (mounted) _refreshData();
+                      },
                     ),
                     const SizedBox(height: AppSizes.spacingXs),
                     if (summary.currentObligation != null)
                       MonthlyObligationCard(
                         obligation: summary.currentObligation!,
-                        onPayTap: () => context.push(
-                          AppRoutes.savingsPayment,
-                          extra: summary.currentObligation,
-                        ),
+                        onPayTap: () async {
+                          await context.push(
+                            AppRoutes.savingsPayment,
+                            extra: summary.currentObligation,
+                          );
+                          if (mounted) _refreshData();
+                        },
                       )
                     else
                       AppCard(
@@ -159,8 +168,7 @@ class _SavingsPageState extends State<SavingsPage> {
                           icon: AppIcons.history.outline,
                           title: 'Transaction Log',
                           subtitle: 'View ledger records',
-                          onTap: () =>
-                              context.push(AppRoutes.savingsHistory),
+                          onTap: () => context.push(AppRoutes.savingsHistory),
                         ),
                       ],
                     ),
@@ -217,7 +225,11 @@ class _ShortcutCard extends StatelessWidget {
                 color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: colorScheme.primary, size: AppSizes.iconS),
+              child: Icon(
+                icon,
+                color: colorScheme.primary,
+                size: AppSizes.iconS,
+              ),
             ),
             const SizedBox(height: 10),
             Text(

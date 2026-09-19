@@ -86,10 +86,13 @@ class _SavingsObligationPageState extends State<SavingsObligationPage> {
                   final obligation = obligations[index];
                   return MonthlyObligationCard(
                     obligation: obligation,
-                    onPayTap: () => context.push(
-                      AppRoutes.savingsPayment,
-                      extra: obligation,
-                    ),
+                    onPayTap: () async {
+                      await context.push(
+                        AppRoutes.savingsPayment,
+                        extra: obligation,
+                      );
+                      if (context.mounted) _loadObligations();
+                    },
                   );
                 },
               );

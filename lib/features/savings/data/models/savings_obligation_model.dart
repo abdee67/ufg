@@ -34,21 +34,39 @@ class SavingsObligationModel extends SavingsObligationEntity {
 
     final reqAmount = (json['required_amount'] as num?)?.toDouble() ?? 0.0;
     final paidAmt = (json['paid_amount'] as num?)?.toDouble() ?? 0.0;
-    final penaltyAmt = (json['late_penalty_amount'] as num?)?.toDouble() ?? 0.0;
-    final calcTotalDue = (json['total_due'] as num?)?.toDouble() ??
-        ((reqAmount - paidAmt) + penaltyAmt).clamp(0.0, double.infinity);
+    var penaltyAmt = (json['late_penalty_amount'] as num?)?.toDouble() ?? 0.0;
+    var parsedStatus = parseStatus(json['status'] as String?);
+    final dueDate = json['due_date'] != null
+        ? DateTime.tryParse(json['due_date'].toString()) ?? DateTime.now()
+        : DateTime.now();
+
+    final isPaid =
+        parsedStatus == SavingsObligationStatus.paid || paidAmt >= reqAmount;
+    final isPastDue = !isPaid && DateTime.now().isAfter(dueDate);
+
+    if (isPastDue) {
+      parsedStatus = SavingsObligationStatus.late;
+      if (penaltyAmt <= 0 && reqAmount > 0) {
+        penaltyAmt = (reqAmount * 0.10).roundToDouble();
+      }
+    }
+
+    final rawTotalDue = (json['total_due'] as num?)?.toDouble();
+    final calcTotalDue =
+        (rawTotalDue != null && rawTotalDue > (reqAmount - paidAmt))
+        ? rawTotalDue
+        : ((reqAmount - paidAmt).clamp(0.0, double.infinity) + penaltyAmt);
 
     return SavingsObligationModel(
       id: json['id'] as String? ?? '',
       periodYear: (json['period_year'] as num?)?.toInt() ?? DateTime.now().year,
-      periodMonth: (json['period_month'] as num?)?.toInt() ?? DateTime.now().month,
+      periodMonth:
+          (json['period_month'] as num?)?.toInt() ?? DateTime.now().month,
       requiredAmount: reqAmount,
-      dueDate: json['due_date'] != null
-          ? DateTime.tryParse(json['due_date'].toString()) ?? DateTime.now()
-          : DateTime.now(),
+      dueDate: dueDate,
       paidAmount: paidAmt,
       latePenaltyAmount: penaltyAmt,
-      status: parseStatus(json['status'] as String?),
+      status: parsedStatus,
       totalDue: calcTotalDue,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())

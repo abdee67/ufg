@@ -37,23 +37,55 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
   PlatformFile? _pickedFile;
   int _pickedFileSize = 0;
 
+  SavingsObligationEntity? get _resolvedObligation {
+    if (widget.obligation != null) return widget.obligation;
+    final state = context.read<SavingsBloc>().state;
+    if (state is SavingsSummaryLoaded) {
+      return state.summary.currentObligation;
+    }
+    if (state is SavingsObligationsLoaded) {
+      final unpaid = state.obligations.where((o) => !o.isPaid).toList();
+      return unpaid.isNotEmpty ? unpaid.first : null;
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
     _applyDepositType(SavingsDepositType.monthlyRequired);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.obligation == null && mounted) {
+        final state = context.read<SavingsBloc>().state;
+        if (state is! SavingsSummaryLoaded && state is! SavingsObligationsLoaded) {
+          context.read<SavingsBloc>().add(LoadSavingsSummaryRequested());
+        } else {
+          final ob = _resolvedObligation;
+          if (ob != null && _depositType == SavingsDepositType.monthlyRequired) {
+            setState(() {
+              _amountController.text = ob.effectiveTotalDue.toStringAsFixed(0);
+            });
+          }
+        }
+      }
+    });
   }
 
   void _applyDepositType(SavingsDepositType type) {
     setState(() {
       _depositType = type;
       if (type == SavingsDepositType.monthlyRequired) {
-        if (widget.obligation != null) {
-          _amountController.text = widget.obligation!.totalDue.toStringAsFixed(0);
+        final ob = _resolvedObligation;
+        if (ob != null) {
+          _amountController.text = ob.effectiveTotalDue.toStringAsFixed(0);
         } else {
           _amountController.text = '2000';
         }
       } else {
-        if (_amountController.text == '2000') {
+        if (_amountController.text == '2000' ||
+            (_resolvedObligation != null &&
+                _amountController.text ==
+                    _resolvedObligation!.effectiveTotalDue.toStringAsFixed(0))) {
           _amountController.clear();
         }
       }
@@ -133,7 +165,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
     if (amount <= 0) return;
 
     final String? obligationId = _depositType == SavingsDepositType.monthlyRequired
-        ? widget.obligation?.id
+        ? _resolvedObligation?.id
         : null;
 
     context.read<SavingsBloc>().add(
@@ -164,6 +196,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
         : colorScheme.error;
 
     final isMonthlyRequired = _depositType == SavingsDepositType.monthlyRequired;
+    final activeObligation = _resolvedObligation;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -177,7 +210,19 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
       ),
       body: BlocConsumer<SavingsBloc, SavingsState>(
         listener: (context, state) {
-          if (state is SavingsActionSuccess) {
+          if (state is SavingsSummaryLoaded) {
+            if (widget.obligation == null &&
+                _depositType == SavingsDepositType.monthlyRequired &&
+                state.summary.currentObligation != null) {
+              setState(() {
+                _amountController.text = state
+                    .summary
+                    .currentObligation!
+                    .effectiveTotalDue
+                    .toStringAsFixed(0);
+              });
+            }
+          } else if (state is SavingsActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -242,15 +287,14 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSizes.spacingL),
-                  if (widget.obligation != null && isMonthlyRequired) ...[
+                  if (activeObligation != null && isMonthlyRequired) ...[
                     Container(
                       padding: const EdgeInsets.all(AppSizes.spacingM),
                       decoration: BoxDecoration(
                         color: theme.cardColor,
                         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                         border: Border.all(
-                          color: widget.obligation!.isLate
+                          color: activeObligation.isLate
                               ? errorFg.withValues(alpha: 0.4)
                               : colorScheme.primary.withValues(alpha: 0.2),
                         ),
@@ -263,13 +307,13 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Payment for ${widget.obligation!.periodLabel}',
+                                  'Payment for ${activeObligation.periodLabel}',
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                              if (widget.obligation!.isLate)
+                              if (activeObligation.isLate)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: AppSizes.spacingXs,
@@ -292,12 +336,39 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Required: ${Formatters.money(widget.obligation!.requiredAmount)}'
-                            '${widget.obligation!.hasPenalty ? ' + Penalty: ${Formatters.money(widget.obligation!.latePenaltyAmount)}' : ''}',
+                            'Required: ${Formatters.money(activeObligation.requiredAmount)}'
+                            '${activeObligation.hasPenalty ? ' + Penalty: ${Formatters.money(activeObligation.effectivePenaltyAmount)}' : ''}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: secondaryText,
                             ),
                           ),
+                          if (activeObligation.isLate) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(AppSizes.spacingS),
+                              decoration: BoxDecoration(
+                                color: errorBg,
+                                borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                                border: Border.all(color: errorFg.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(AppIcons.info.outline, color: errorFg, size: AppSizes.iconXs),
+                                  const SizedBox(width: AppSizes.spacingXs),
+                                  Expanded(
+                                    child: Text(
+                                      'Late contribution penalty applies: ${Formatters.money(activeObligation.effectivePenaltyAmount)}. Total due: ${Formatters.money(activeObligation.effectiveTotalDue)}',
+                                      style: TextStyle(
+                                        color: errorFg,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
