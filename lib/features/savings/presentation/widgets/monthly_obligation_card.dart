@@ -26,6 +26,7 @@ class MonthlyObligationCard extends StatelessWidget {
 
     final bool isLate = obligation.isLate;
     final bool isPaid = obligation.isPaid;
+    final bool hasPendingPayment = obligation.hasPendingPayment;
     final secondaryText = colorScheme.onSurface.withValues(alpha: 0.6);
     final lateBg = isDark
         ? ColorConstants.errorSubtleDark
@@ -75,10 +76,17 @@ class MonthlyObligationCard extends StatelessWidget {
                   ),
                 ],
               ),
-              SavingsStatusChip.fromObligationStatus(
-                obligation.effectiveStatus,
-                colorScheme,
-              ),
+              if (hasPendingPayment)
+                SavingsStatusChip.fromObligationStatus(
+                  obligation.effectiveStatus,
+                  colorScheme,
+                  hasPendingPayment: true,
+                )
+              else
+                SavingsStatusChip.fromObligationStatus(
+                  obligation.effectiveStatus,
+                  colorScheme,
+                ),
             ],
           ),
           const SizedBox(height: AppSizes.spacingM),
@@ -181,25 +189,69 @@ class MonthlyObligationCard extends StatelessWidget {
               ),
             ),
           ],
+          if (hasPendingPayment) ...[
+            const SizedBox(height: AppSizes.spacingS + 2),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.spacingS,
+                vertical: AppSizes.spacingXs,
+              ),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? colorScheme.primary.withValues(alpha: 0.1)
+                    : colorScheme.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.clock.outline,
+                    color: colorScheme.primary,
+                    size: AppSizes.iconXs,
+                  ),
+                  const SizedBox(width: AppSizes.spacingXs),
+                  Expanded(
+                    child: Text(
+                      'Payment of ${Formatters.money(obligation.pendingPaymentAmount)} submitted – awaiting admin verification.',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (!isPaid) ...[
             const SizedBox(height: AppSizes.spacingM),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: onPayTap,
+                onPressed: hasPendingPayment ? null : onPayTap,
                 icon: Icon(AppIcons.payments.outline, size: AppSizes.iconS - 2),
                 label: Text(
-                  isLate
-                      ? 'Pay Obligation & Penalty (${Formatters.money(obligation.effectiveTotalDue)})'
-                      : 'Pay Contribution (${Formatters.money(obligation.effectiveTotalDue)})',
+                  hasPendingPayment
+                      ? 'Payment Pending Verification'
+                      : isLate
+                          ? 'Pay Obligation & Penalty (${Formatters.money(obligation.effectiveTotalDue)})'
+                          : 'Pay Contribution (${Formatters.money(obligation.effectiveTotalDue)})',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isLate
-                      ? colorScheme.error
-                      : colorScheme.primary,
-                  foregroundColor: ColorConstants.onBrand,
+                  backgroundColor: hasPendingPayment
+                      ? colorScheme.onSurface.withValues(alpha: 0.12)
+                      : isLate
+                          ? colorScheme.error
+                          : colorScheme.primary,
+                  foregroundColor: hasPendingPayment
+                      ? colorScheme.onSurface.withValues(alpha: 0.5)
+                      : ColorConstants.onBrand,
                   padding: const EdgeInsets.symmetric(
                     vertical: AppSizes.spacingS,
                   ),

@@ -29,12 +29,12 @@ class SavingsBalanceCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.spacingL),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            ColorConstants.navGradientStart,
-            ColorConstants.navGradientEnd,
+            ColorConstants.navyBlue,
+            ColorConstants.navyBlue.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
@@ -86,11 +86,6 @@ class SavingsBalanceCard extends StatelessWidget {
           const SizedBox(height: AppSizes.spacingL),
           Container(
             padding: const EdgeInsets.all(AppSizes.spacingS + 2),
-            decoration: BoxDecoration(
-              color: onGradient.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-              border: Border.all(color: onGradient.withValues(alpha: 0.2)),
-            ),
             child: Row(
               children: [
                 Expanded(

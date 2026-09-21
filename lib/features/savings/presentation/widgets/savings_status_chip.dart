@@ -18,8 +18,17 @@ class SavingsStatusChip extends StatelessWidget {
 
   factory SavingsStatusChip.fromObligationStatus(
     SavingsObligationStatus status,
-    ColorScheme colorScheme,
-  ) {
+    ColorScheme colorScheme, {
+    bool hasPendingPayment = false,
+  }) {
+    if (hasPendingPayment) {
+      return SavingsStatusChip(
+        label: 'PAYMENT SUBMITTED',
+        tone: StatusTone.info,
+        icon: AppIcons.clock.outline,
+      );
+    }
+
     switch (status) {
       case SavingsObligationStatus.paid:
         return SavingsStatusChip(
