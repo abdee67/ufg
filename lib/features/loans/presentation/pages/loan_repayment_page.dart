@@ -30,6 +30,7 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
   String _paymentMethod = 'bank_transfer';
   PlatformFile? _pickedFile;
   int _pickedFileSize = 0;
+  bool _showProofError = false;
 
   @override
   void dispose() {
@@ -60,6 +61,7 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
       setState(() {
         _pickedFile = file;
         _pickedFileSize = sizeInByte;
+        _showProofError = false;
       });
     }
   }
@@ -81,7 +83,7 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final isFormValid = _formKey.currentState!.validate();
 
     final amount =
         double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0.0;
@@ -93,6 +95,7 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
     }
 
     if (_pickedFile == null) {
+      setState(() => _showProofError = true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please upload a payment receipt / proof.'),
@@ -100,6 +103,8 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
       );
       return;
     }
+
+    if (!isFormValid) return;
 
     final mimeType = _determineMimeType(_pickedFile!.name);
     final int fileSize = _pickedFileSize;
@@ -267,7 +272,7 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
                   const SizedBox(height: AppSizes.spacingL),
 
                   Text(
-                    'Bank Transaction Reference',
+                    'Bank Transaction Reference (Optional)',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -275,24 +280,31 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
                   const SizedBox(height: AppSizes.spacingS),
                   CustomTextField(
                     controller: _referenceController,
-                    label: 'Transaction Reference / FT Number',
-                    hintText: 'e.g. FT260902ABCD',
+                    label: 'Transaction Reference / FT Number (Optional)',
+                    hintText: 'e.g. FT260902ABCD (Optional)',
                     icon: AppIcons.document.outline,
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'Please provide bank transaction reference.';
-                      }
-                      return null;
-                    },
+                    validator: (val) => null,
                   ),
 
                   const SizedBox(height: AppSizes.spacingL),
 
-                  Text(
-                    'Payment Receipt Proof',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        'Payment Receipt Proof',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '*',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppSizes.spacingS),
 
@@ -310,7 +322,9 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
                         border: Border.all(
                           color: _pickedFile != null
                               ? ColorConstants.success
-                              : theme.dividerColor,
+                              : (_showProofError
+                                  ? colorScheme.error
+                                  : theme.dividerColor),
                         ),
                       ),
                       child: Row(
@@ -358,6 +372,15 @@ class _LoanRepaymentPageState extends State<LoanRepaymentPage> {
                       ),
                     ),
                   ),
+                  if (_showProofError && _pickedFile == null) ...[
+                    const SizedBox(height: AppSizes.spacingXs),
+                    Text(
+                      'Please upload a payment receipt or proof.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: AppSizes.spacingXl),
 

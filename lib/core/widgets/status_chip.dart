@@ -30,21 +30,27 @@ class StatusChip extends StatelessWidget {
     switch (tone) {
       case StatusTone.success:
         return StatusChipColors(
-          foreground: isDark ? ColorConstants.textPrimaryDark : ColorConstants.success,
+          foreground: isDark
+              ? ColorConstants.textPrimaryDark
+              : ColorConstants.success,
           background: isDark
               ? ColorConstants.successSubtleDark
               : ColorConstants.successSubtle,
         );
       case StatusTone.warning:
         return StatusChipColors(
-          foreground: isDark ? ColorConstants.warningDark : ColorConstants.warning,
+          foreground: isDark
+              ? ColorConstants.warningDark
+              : ColorConstants.warning,
           background: isDark
               ? ColorConstants.warningSubtleDark
               : ColorConstants.warningSubtle,
         );
       case StatusTone.error:
         return StatusChipColors(
-          foreground: isDark ? ColorConstants.textPrimaryDark : ColorConstants.error,
+          foreground: isDark
+              ? ColorConstants.textPrimaryDark
+              : ColorConstants.error,
           background: isDark
               ? ColorConstants.errorSubtleDark
               : ColorConstants.errorSubtle,
@@ -58,7 +64,8 @@ class StatusChip extends StatelessWidget {
         );
       case StatusTone.neutral:
         return StatusChipColors(
-          foreground: theme.textTheme.bodyMedium!.color ?? theme.colorScheme.onSurface,
+          foreground:
+              theme.textTheme.bodyMedium!.color ?? theme.colorScheme.onSurface,
           background: isDark
               ? ColorConstants.neutralSubtleDark
               : ColorConstants.neutralSubtle,
@@ -77,17 +84,10 @@ class StatusChip extends StatelessWidget {
           horizontal: AppSizes.spacingS,
           vertical: 6,
         ),
-        decoration: BoxDecoration(
-          color: colors.background,
-          borderRadius: BorderRadius.circular(AppSizes.radiusChip),
-        ),
+
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
-              Icon(icon, size: AppSizes.iconXs, color: colors.foreground),
-              const SizedBox(width: AppSizes.spacingXxs),
-            ],
             Flexible(
               child: Text(
                 label,
