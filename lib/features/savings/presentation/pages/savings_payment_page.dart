@@ -13,10 +13,7 @@ import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_event.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_state.dart';
 
-enum SavingsDepositType {
-  monthlyRequired,
-  anyTimeContribution,
-}
+enum SavingsDepositType { monthlyRequired, anyTimeContribution }
 
 class SavingsPaymentPage extends StatefulWidget {
   final SavingsObligationEntity? obligation;
@@ -36,6 +33,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
   String _selectedPaymentMethod = 'bank_transfer';
   PlatformFile? _pickedFile;
   int _pickedFileSize = 0;
+  bool _showProofError = false;
 
   SavingsObligationEntity? get _resolvedObligation {
     if (widget.obligation != null) return widget.obligation;
@@ -57,11 +55,13 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.obligation == null && mounted) {
         final state = context.read<SavingsBloc>().state;
-        if (state is! SavingsSummaryLoaded && state is! SavingsObligationsLoaded) {
+        if (state is! SavingsSummaryLoaded &&
+            state is! SavingsObligationsLoaded) {
           context.read<SavingsBloc>().add(LoadSavingsSummaryRequested());
         } else {
           final ob = _resolvedObligation;
-          if (ob != null && _depositType == SavingsDepositType.monthlyRequired) {
+          if (ob != null &&
+              _depositType == SavingsDepositType.monthlyRequired) {
             setState(() {
               _amountController.text = ob.effectiveTotalDue.toStringAsFixed(0);
             });
@@ -85,7 +85,9 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
         if (_amountController.text == '2000' ||
             (_resolvedObligation != null &&
                 _amountController.text ==
-                    _resolvedObligation!.effectiveTotalDue.toStringAsFixed(0))) {
+                    _resolvedObligation!.effectiveTotalDue.toStringAsFixed(
+                      0,
+                    ))) {
           _amountController.clear();
         }
       }
@@ -127,6 +129,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
         setState(() {
           _pickedFile = file;
           _pickedFileSize = sizeInByte;
+          _showProofError = false;
         });
       }
     } catch (e) {
@@ -159,27 +162,46 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
   }
 
   void _submitPayment() {
-    if (!_formKey.currentState!.validate()) return;
+    final isFormValid = _formKey.currentState!.validate();
+
+    if (_pickedFile == null) {
+      setState(() => _showProofError = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Please upload a payment proof / receipt screenshot.',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (!isFormValid) return;
 
     final amount = double.tryParse(_amountController.text.trim()) ?? 0.0;
     if (amount <= 0) return;
 
-    final String? obligationId = _depositType == SavingsDepositType.monthlyRequired
+    final String? obligationId =
+        _depositType == SavingsDepositType.monthlyRequired
         ? _resolvedObligation?.id
         : null;
 
     context.read<SavingsBloc>().add(
-          SubmitSavingsPaymentRequested(
-            amount: amount,
-            paymentMethodCode: _selectedPaymentMethod,
-            externalReference: _referenceController.text.trim(),
-            filePath: _pickedFile?.path,
-            fileName: _pickedFile?.name,
-            mimeType: _pickedFile != null ? _determineMimeType(_pickedFile!.name) : null,
-            fileSizeBytes: _pickedFileSize > 0 ? _pickedFileSize : null,
-            obligationId: obligationId,
-          ),
-        );
+      SubmitSavingsPaymentRequested(
+        amount: amount,
+        paymentMethodCode: _selectedPaymentMethod,
+        externalReference: _referenceController.text.trim(),
+        filePath: _pickedFile?.path,
+        fileName: _pickedFile?.name,
+        mimeType: _pickedFile != null
+            ? _determineMimeType(_pickedFile!.name)
+            : null,
+        fileSizeBytes: _pickedFileSize > 0 ? _pickedFileSize : null,
+        obligationId: obligationId,
+      ),
+    );
   }
 
   @override
@@ -195,7 +217,8 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
         ? colorScheme.error.withValues(alpha: 0.9)
         : colorScheme.error;
 
-    final isMonthlyRequired = _depositType == SavingsDepositType.monthlyRequired;
+    final isMonthlyRequired =
+        _depositType == SavingsDepositType.monthlyRequired;
     final activeObligation = _resolvedObligation;
 
     return Scaffold(
@@ -269,8 +292,9 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                           subtitle: '2,000 ETB (Fixed)',
                           icon: AppIcons.calendar.outline,
                           isSelected: isMonthlyRequired,
-                          onTap: () =>
-                              _applyDepositType(SavingsDepositType.monthlyRequired),
+                          onTap: () => _applyDepositType(
+                            SavingsDepositType.monthlyRequired,
+                          ),
                         ),
                       ),
                       const SizedBox(width: AppSizes.spacingS),
@@ -292,7 +316,9 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       padding: const EdgeInsets.all(AppSizes.spacingM),
                       decoration: BoxDecoration(
                         color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusCard,
+                        ),
                         border: Border.all(
                           color: activeObligation.isLate
                               ? errorFg.withValues(alpha: 0.4)
@@ -348,18 +374,61 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                               padding: const EdgeInsets.all(AppSizes.spacingS),
                               decoration: BoxDecoration(
                                 color: errorBg,
-                                borderRadius: BorderRadius.circular(AppSizes.radiusS),
-                                border: Border.all(color: errorFg.withValues(alpha: 0.3)),
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusS,
+                                ),
+                                border: Border.all(
+                                  color: errorFg.withValues(alpha: 0.3),
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(AppIcons.info.outline, color: errorFg, size: AppSizes.iconXs),
+                                  Icon(
+                                    AppIcons.info.outline,
+                                    color: errorFg,
+                                    size: AppSizes.iconXs,
+                                  ),
                                   const SizedBox(width: AppSizes.spacingXs),
                                   Expanded(
                                     child: Text(
                                       'Late contribution penalty applies: ${Formatters.money(activeObligation.effectivePenaltyAmount)}. Total due: ${Formatters.money(activeObligation.effectiveTotalDue)}',
                                       style: TextStyle(
                                         color: errorFg,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (activeObligation.hasPendingPayment) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(AppSizes.spacingS),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusS,
+                                ),
+                                border: Border.all(
+                                  color: colorScheme.primary.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    AppIcons.clock.outline,
+                                    color: colorScheme.primary,
+                                    size: AppSizes.iconXs,
+                                  ),
+                                  const SizedBox(width: AppSizes.spacingXs),
+                                  Expanded(
+                                    child: Text(
+                                      'Payment of ${Formatters.money(activeObligation.pendingPaymentAmount)} already submitted – awaiting admin verification.',
+                                      style: TextStyle(
+                                        color: colorScheme.primary,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -420,9 +489,13 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                   TextFormField(
                     controller: _amountController,
                     readOnly: isMonthlyRequired,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
-                      hintText: isMonthlyRequired ? '2000' : 'Enter voluntary amount (e.g. 5000)',
+                      hintText: isMonthlyRequired
+                          ? '2000'
+                          : 'Enter voluntary amount (e.g. 5000)',
                       prefixIcon: Icon(
                         isMonthlyRequired
                             ? AppIcons.lock.outline
@@ -486,7 +559,10 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                             value: 'bank_transfer',
                             child: Row(
                               children: [
-                                Icon(AppIcons.bank.outline, size: AppSizes.iconS),
+                                Icon(
+                                  AppIcons.bank.outline,
+                                  size: AppSizes.iconS,
+                                ),
                                 const SizedBox(width: AppSizes.spacingS),
                                 const Expanded(
                                   child: Text(
@@ -501,7 +577,10 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                             value: 'wallet',
                             child: Row(
                               children: [
-                                Icon(AppIcons.card.outline, size: AppSizes.iconS),
+                                Icon(
+                                  AppIcons.card.outline,
+                                  size: AppSizes.iconS,
+                                ),
                                 const SizedBox(width: AppSizes.spacingS),
                                 const Expanded(
                                   child: Text(
@@ -523,7 +602,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                   ),
                   const SizedBox(height: AppSizes.spacingL),
                   Text(
-                    'Transaction Reference / Receipt ID',
+                    'Transaction Reference / Receipt ID (Optional)',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -532,7 +611,7 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                   TextFormField(
                     controller: _referenceController,
                     decoration: InputDecoration(
-                      hintText: 'e.g. FT260901ABCD / TXN123456',
+                      hintText: 'e.g. FT260901ABCD / TXN123456 (Optional)',
                       prefixIcon: Icon(
                         AppIcons.receiptItem.outline,
                         color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -544,18 +623,28 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       focusedBorder: _fieldBorder(color: colorScheme.primary),
                     ),
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'Please provide the transaction reference number';
-                      }
+                      // Reference number is optional
                       return null;
                     },
                   ),
                   const SizedBox(height: AppSizes.spacingL),
-                  Text(
-                    'Payment Proof / Receipt Screenshot (Optional)',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        'Payment Proof / Receipt Screenshot',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '*',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppSizes.spacingXs),
                   InkWell(
@@ -566,11 +655,15 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       padding: const EdgeInsets.all(AppSizes.spacingM),
                       decoration: BoxDecoration(
                         color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusCard,
+                        ),
                         border: Border.all(
                           color: _pickedFile != null
                               ? ColorConstants.brandGreen
-                              : theme.dividerColor,
+                              : (_showProofError
+                                    ? colorScheme.error
+                                    : theme.dividerColor),
                           style: BorderStyle.solid,
                         ),
                       ),
@@ -629,6 +722,15 @@ class _SavingsPaymentPageState extends State<SavingsPaymentPage> {
                       ),
                     ),
                   ),
+                  if (_showProofError && _pickedFile == null) ...[
+                    const SizedBox(height: AppSizes.spacingXs),
+                    Text(
+                      'Please upload a payment proof or receipt screenshot.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: AppSizes.spacingXxl),
                   PrimaryButton(
                     label: 'Submit Payment for Verification',
@@ -712,9 +814,7 @@ class _DepositTypeOptionCard extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  isSelected
-                      ? AppIcons.check.outline
-                      : AppIcons.info.outline,
+                  isSelected ? AppIcons.check.outline : AppIcons.info.outline,
                   color: isSelected ? colorScheme.primary : theme.hintColor,
                   size: AppSizes.iconS - 2,
                 ),
