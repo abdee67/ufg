@@ -12,6 +12,8 @@ class SavingsObligationEntity extends Equatable {
   final double latePenaltyAmount;
   final SavingsObligationStatus status;
   final double totalDue;
+  final bool hasPendingPayment;
+  final double pendingPaymentAmount;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -25,6 +27,8 @@ class SavingsObligationEntity extends Equatable {
     required this.latePenaltyAmount,
     required this.status,
     required this.totalDue,
+    this.hasPendingPayment = false,
+    this.pendingPaymentAmount = 0.0,
     this.createdAt,
     this.updatedAt,
   });
@@ -56,18 +60,18 @@ class SavingsObligationEntity extends Equatable {
 
   String get monthName {
     const months = [
-      'January',
-      'February',
-      'March',
-      'April',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
       'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     if (periodMonth >= 1 && periodMonth <= 12) {
       return months[periodMonth - 1];
@@ -88,6 +92,8 @@ class SavingsObligationEntity extends Equatable {
     latePenaltyAmount,
     status,
     totalDue,
+    hasPendingPayment,
+    pendingPaymentAmount,
     createdAt,
     updatedAt,
   ];

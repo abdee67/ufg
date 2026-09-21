@@ -25,6 +25,7 @@ class SavingsContributionEntity extends Equatable {
 
   bool get isMandatory => contributionType.toLowerCase() == 'mandatory';
   bool get isVoluntary => contributionType.toLowerCase() == 'voluntary';
+  bool get isLatePayment => contributionType.toLowerCase() == 'late_payment';
 
   @override
   List<Object?> get props => [

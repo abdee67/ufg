@@ -11,6 +11,8 @@ class SavingsObligationModel extends SavingsObligationEntity {
     required super.latePenaltyAmount,
     required super.status,
     required super.totalDue,
+    super.hasPendingPayment,
+    super.pendingPaymentAmount,
     super.createdAt,
     super.updatedAt,
   });
@@ -57,6 +59,10 @@ class SavingsObligationModel extends SavingsObligationEntity {
         ? rawTotalDue
         : ((reqAmount - paidAmt).clamp(0.0, double.infinity) + penaltyAmt);
 
+    final hasPendingPayment = json['has_pending_payment'] as bool? ?? false;
+    final pendingPaymentAmount =
+        (json['pending_payment_amount'] as num?)?.toDouble() ?? 0.0;
+
     return SavingsObligationModel(
       id: json['id'] as String? ?? '',
       periodYear: (json['period_year'] as num?)?.toInt() ?? DateTime.now().year,
@@ -68,6 +74,8 @@ class SavingsObligationModel extends SavingsObligationEntity {
       latePenaltyAmount: penaltyAmt,
       status: parsedStatus,
       totalDue: calcTotalDue,
+      hasPendingPayment: hasPendingPayment,
+      pendingPaymentAmount: pendingPaymentAmount,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
@@ -88,6 +96,8 @@ class SavingsObligationModel extends SavingsObligationEntity {
       'late_penalty_amount': latePenaltyAmount,
       'status': status.name,
       'total_due': totalDue,
+      'has_pending_payment': hasPendingPayment,
+      'pending_payment_amount': pendingPaymentAmount,
     };
   }
 }
