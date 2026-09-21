@@ -106,22 +106,27 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () => context.push(AppRoutes.searchScreen),
                           ),
                           const SizedBox(height: AppSizes.spacingXl),
-                          _QuickActionsSection(),
+                          _QuickActionsSection(onLogoutTap: _logout),
                           const SizedBox(height: AppSizes.spacingXl),
                           _SavingsCard(
-                            totalSavings:
-                                state.savingsSummary?.totalSavings ?? 0,
-                            nextDue: state
-                                .savingsSummary?.currentObligation?.dueDate
-                                .day
-                                .toString(),
-                            monthlyContribution: state.savingsSummary
-                                    ?.currentObligation?.requiredAmount ??
-                                0,
-                          ).animate().fadeIn(duration: 400.ms).slideY(
-                                begin: 0.1,
-                                curve: Curves.easeOutQuad,
-                              ),
+                                totalSavings:
+                                    state.savingsSummary?.totalSavings ?? 0,
+                                nextDue: state
+                                    .savingsSummary
+                                    ?.currentObligation
+                                    ?.dueDate
+                                    .day
+                                    .toString(),
+                                monthlyContribution:
+                                    state
+                                        .savingsSummary
+                                        ?.currentObligation
+                                        ?.requiredAmount ??
+                                    0,
+                              )
+                              .animate()
+                              .fadeIn(duration: 400.ms)
+                              .slideY(begin: 0.1, curve: Curves.easeOutQuad),
                           const SizedBox(height: AppSizes.spacingXl),
                           _RecentActivitySection(
                             activities: state.recentActivity,
@@ -149,10 +154,7 @@ class _StickyHeader extends StatelessWidget {
   final String userName;
   final VoidCallback onLogoutTap;
 
-  const _StickyHeader({
-    required this.userName,
-    required this.onLogoutTap,
-  });
+  const _StickyHeader({required this.userName, required this.onLogoutTap});
 
   @override
   Widget build(BuildContext context) {
@@ -315,6 +317,8 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _QuickActionsSection extends StatelessWidget {
+  final VoidCallback onLogoutTap;
+  const _QuickActionsSection({required this.onLogoutTap});
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -322,34 +326,43 @@ class _QuickActionsSection extends StatelessWidget {
       children: [
         const SectionHeader(title: 'Quick Actions'),
         const SizedBox(height: AppSizes.spacingM),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _ActionItem(
-              icon: AppIcons.savings.outline,
-              label: 'Savings',
-              color: ColorConstants.brandGreen,
-              onTap: () => context.push(AppRoutes.savings),
-            ),
-            _ActionItem(
-              icon: AppIcons.loans.outline,
-              label: 'Loans',
-              color: ColorConstants.navyBlue,
-              onTap: () => context.push(AppRoutes.loans),
-            ),
-            _ActionItem(
-              icon: AppIcons.payments.outline,
-              label: 'Pay',
-              color: Colors.orange,
-              onTap: () {},
-            ),
-            _ActionItem(
-              icon: AppIcons.members.outline,
-              label: 'Members',
-              color: Colors.purple,
-              onTap: () {},
-            ),
-          ],
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _ActionItem(
+                icon: AppIcons.savings.outline,
+                label: 'Savings',
+                color: ColorConstants.brandGreen,
+                onTap: () => context.push(AppRoutes.savings),
+              ),
+              _ActionItem(
+                icon: AppIcons.logout.outline,
+                label: 'Log Out',
+                color: ColorConstants.error,
+                onTap: onLogoutTap,
+              ),
+              _ActionItem(
+                icon: AppIcons.loans.outline,
+                label: 'Loans',
+                color: ColorConstants.navyBlue,
+                onTap: () => context.push(AppRoutes.loans),
+              ),
+              _ActionItem(
+                icon: AppIcons.payments.outline,
+                label: 'Pay',
+                color: Colors.orange,
+                onTap: () {},
+              ),
+              _ActionItem(
+                icon: AppIcons.members.outline,
+                label: 'Members',
+                color: Colors.purple,
+                onTap: () {},
+              ),
+            ],
+          ),
         ),
       ],
     );
