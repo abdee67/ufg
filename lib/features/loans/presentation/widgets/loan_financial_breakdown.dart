@@ -21,11 +21,16 @@ class LoanFinancialBreakdown extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final currencyFormatter = NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+    final currencyFormatter = NumberFormat.currency(
+      symbol: 'ETB ',
+      decimalDigits: 2,
+    );
 
     final serviceCharge = principal * serviceChargeRate;
     final totalRepayment = principal + serviceCharge;
-    final monthlyInstallment = termMonths > 0 ? totalRepayment / termMonths : 0.0;
+    final monthlyInstallment = termMonths > 0
+        ? totalRepayment / termMonths
+        : 0.0;
     final serviceRatePercentage = (serviceChargeRate * 100).toStringAsFixed(0);
 
     return Container(
@@ -40,16 +45,26 @@ class LoanFinancialBreakdown extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(AppIcons.calculator.outline, size: AppSizes.iconS, color: colorScheme.primary),
+              Icon(
+                AppIcons.calculator.outline,
+                size: AppSizes.iconS,
+                color: colorScheme.primary,
+              ),
               const SizedBox(width: AppSizes.spacingXs),
               Text(
                 'Financial Breakdown',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSizes.spacingM),
-          _row('Requested Principal', currencyFormatter.format(principal), theme),
+          _row(
+            'Requested Principal',
+            currencyFormatter.format(principal),
+            theme,
+          ),
           const SizedBox(height: AppSizes.spacingS),
           _row(
             'One-Time Service Charge ($serviceRatePercentage%)',
@@ -68,7 +83,7 @@ class LoanFinancialBreakdown extends StatelessWidget {
           ),
           const SizedBox(height: AppSizes.spacingS),
           _row(
-            'Monthly Installment ($termMonths months)',
+            'Monthly Installment',
             '${currencyFormatter.format(monthlyInstallment)} / month',
             theme,
             valueColor: colorScheme.primary,
@@ -84,14 +99,20 @@ class LoanFinancialBreakdown extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(AppIcons.info.outline, size: 14, color: colorScheme.primary),
+                Icon(
+                  AppIcons.info.outline,
+                  size: 14,
+                  color: colorScheme.primary,
+                ),
                 const SizedBox(width: AppSizes.spacingXs),
                 Expanded(
                   child: Text(
                     'The $serviceRatePercentage% service charge is a one-time flat fee calculated from the original principal. No compound interest or early-repayment penalties.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 11,
-                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                      color: theme.textTheme.bodyMedium?.color?.withValues(
+                        alpha: 0.8,
+                      ),
                     ),
                   ),
                 ),
