@@ -9,6 +9,12 @@ class MemberLoanLimitEntity extends Equatable {
   final double globalCap;
   final int paidSavingMonths;
   final int requiredSavingMonths;
+  final bool hasActiveLoan;
+  final bool hasPendingApplication;
+  final String? activeLoanId;
+  final String? pendingApplicationId;
+  final String? blockReason;
+  final bool canApply;
 
   const MemberLoanLimitEntity({
     required this.memberId,
@@ -17,6 +23,12 @@ class MemberLoanLimitEntity extends Equatable {
     required this.globalCap,
     this.paidSavingMonths = 0,
     this.requiredSavingMonths = 2,
+    this.hasActiveLoan = false,
+    this.hasPendingApplication = false,
+    this.activeLoanId,
+    this.pendingApplicationId,
+    this.blockReason,
+    this.canApply = true,
   });
 
   bool get meetsMinimumSavingHistory =>
@@ -30,5 +42,11 @@ class MemberLoanLimitEntity extends Equatable {
     globalCap,
     paidSavingMonths,
     requiredSavingMonths,
+    hasActiveLoan,
+    hasPendingApplication,
+    activeLoanId,
+    pendingApplicationId,
+    blockReason,
+    canApply,
   ];
 }

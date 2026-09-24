@@ -8,6 +8,12 @@ class MemberLoanLimitModel extends MemberLoanLimitEntity {
     required super.globalCap,
     super.paidSavingMonths,
     super.requiredSavingMonths,
+    super.hasActiveLoan = false,
+    super.hasPendingApplication = false,
+    super.activeLoanId,
+    super.pendingApplicationId,
+    super.blockReason,
+    super.canApply = true,
   });
 
   factory MemberLoanLimitModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +24,12 @@ class MemberLoanLimitModel extends MemberLoanLimitEntity {
       globalCap: (json['global_cap'] as num?)?.toDouble() ?? 20000,
       paidSavingMonths: (json['paid_saving_months'] as num?)?.toInt() ?? 0,
       requiredSavingMonths: (json['required_saving_months'] as num?)?.toInt() ?? 2,
+      hasActiveLoan: json['has_active_loan'] as bool? ?? false,
+      hasPendingApplication: json['has_pending_application'] as bool? ?? false,
+      activeLoanId: json['active_loan_id'] as String?,
+      pendingApplicationId: json['pending_application_id'] as String?,
+      blockReason: json['block_reason'] as String?,
+      canApply: json['can_apply'] as bool? ?? true,
     );
   }
 }

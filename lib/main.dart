@@ -19,6 +19,7 @@ import 'package:ufg/features/membership/presentation/bloc/membership_bloc.dart';
 import 'package:ufg/features/savings/presentation/bloc/savings_bloc.dart';
 import 'package:ufg/injection_container.dart';
 import 'core/config/supabase_config.dart';
+import 'core/messaging/root_scaffold_messenger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -143,6 +144,7 @@ class _UFGState extends State<UFG> with WidgetsBindingObserver {
             debugShowCheckedModeBanner: false,
             title: 'Unity Finance Group',
             routerConfig: _router,
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
             theme: ThemeConfig.lightTheme,
             darkTheme: ThemeConfig.darkTheme,
             themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,

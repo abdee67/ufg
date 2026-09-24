@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () => context.push(AppRoutes.searchScreen),
                           ),
                           const SizedBox(height: AppSizes.spacingXl),
-                          _QuickActionsSection(onLogoutTap: _logout),
+                          _QuickActionsSection(),
                           const SizedBox(height: AppSizes.spacingXl),
                           _SavingsCard(
                                 totalSavings:
@@ -317,8 +317,6 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _QuickActionsSection extends StatelessWidget {
-  final VoidCallback onLogoutTap;
-  const _QuickActionsSection({required this.onLogoutTap});
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -336,12 +334,6 @@ class _QuickActionsSection extends StatelessWidget {
                 label: 'Savings',
                 color: ColorConstants.brandGreen,
                 onTap: () => context.push(AppRoutes.savings),
-              ),
-              _ActionItem(
-                icon: AppIcons.logout.outline,
-                label: 'Log Out',
-                color: ColorConstants.error,
-                onTap: onLogoutTap,
               ),
               _ActionItem(
                 icon: AppIcons.loans.outline,

@@ -71,6 +71,48 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
       return;
     }
 
+    if (_memberLoanLimit!.hasActiveLoan) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'You have an active loan. You must fully repay your current loan before applying for a new one.',
+          ),
+          backgroundColor: ColorConstants.error,
+          action: _memberLoanLimit!.activeLoanId != null
+              ? SnackBarAction(
+                  label: 'Repay',
+                  textColor: Colors.white,
+                  onPressed: () => context.push(
+                    '${AppRoutes.loans}/repay/${_memberLoanLimit!.activeLoanId}',
+                  ),
+                )
+              : null,
+        ),
+      );
+      return;
+    }
+
+    if (_memberLoanLimit!.hasPendingApplication) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'You already have a loan application in progress. You cannot apply again until it is completed or cancelled.',
+          ),
+          backgroundColor: ColorConstants.error,
+          action: _memberLoanLimit!.pendingApplicationId != null
+              ? SnackBarAction(
+                  label: 'View Status',
+                  textColor: Colors.white,
+                  onPressed: () => context.push(
+                    '${AppRoutes.loans}/status/${_memberLoanLimit!.pendingApplicationId}',
+                  ),
+                )
+              : null,
+        ),
+      );
+      return;
+    }
+
     if (!_memberLoanLimit!.meetsMinimumSavingHistory) {
       final required = _memberLoanLimit!.requiredSavingMonths;
       final paid = _memberLoanLimit!.paidSavingMonths;
@@ -179,6 +221,14 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
         builder: (context, state) {
           if (state is LoanLoading && _products.isEmpty) {
             return const Center(child: LoadingIndicator());
+          }
+
+          if (_memberLoanLimit?.hasActiveLoan == true) {
+            return _buildActiveLoanBlockedView(context, _memberLoanLimit!);
+          }
+
+          if (_memberLoanLimit?.hasPendingApplication == true) {
+            return _buildPendingApplicationBlockedView(context, _memberLoanLimit!);
           }
 
           final isSubmitting = state is LoanActionInProgress;
@@ -402,6 +452,178 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildActiveLoanBlockedView(
+    BuildContext context,
+    MemberLoanLimitEntity limit,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSizes.screenPadding),
+        child: Container(
+          padding: const EdgeInsets.all(AppSizes.spacingL),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+            border: Border.all(
+              color: ColorConstants.warning.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: ColorConstants.warning.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  AppIcons.lock.outline,
+                  color: ColorConstants.warning,
+                  size: 36,
+                ),
+              ),
+              const SizedBox(height: AppSizes.spacingM),
+              Text(
+                'Active Loan In Progress',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSizes.spacingS),
+              Text(
+                'You already have an outstanding active loan. According to SACCO lending policy, members must complete full repayment of their existing loan before applying for a new one.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSizes.spacingL),
+              if (limit.activeLoanId != null) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push(
+                      '${AppRoutes.loans}/repay/${limit.activeLoanId}',
+                    ),
+                    icon: Icon(AppIcons.moneySend.outline, size: AppSizes.iconS),
+                    label: const Text('Make a Loan Repayment'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSizes.spacingS),
+              ],
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => context.pop(),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Back to Loans Dashboard'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPendingApplicationBlockedView(
+    BuildContext context,
+    MemberLoanLimitEntity limit,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSizes.screenPadding),
+        child: Container(
+          padding: const EdgeInsets.all(AppSizes.spacingL),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+            border: Border.all(
+              color: ColorConstants.warning.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: ColorConstants.warning.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  AppIcons.clock.outline,
+                  color: ColorConstants.warning,
+                  size: 36,
+                ),
+              ),
+              const SizedBox(height: AppSizes.spacingM),
+              Text(
+                'Application Under Review',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSizes.spacingS),
+              Text(
+                'You already have a loan application currently under review. Multiple simultaneous applications are not allowed. Please await the decision on your pending request.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSizes.spacingL),
+              if (limit.pendingApplicationId != null) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push(
+                      '${AppRoutes.loans}/status/${limit.pendingApplicationId}',
+                    ),
+                    icon: Icon(AppIcons.forward.outline, size: AppSizes.iconS),
+                    label: const Text('Track Application Status'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSizes.spacingS),
+              ],
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => context.pop(),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Back to Loans Dashboard'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

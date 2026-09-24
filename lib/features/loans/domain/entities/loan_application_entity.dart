@@ -58,6 +58,11 @@ class LoanApplicationEntity extends Equatable {
   bool get isRejected => status == LoanApplicationStatus.rejected;
   bool get isCancelled => status == LoanApplicationStatus.cancelled;
   bool get isEligible => eligibilityStatus == 'eligible';
+  bool get isPending =>
+      status == LoanApplicationStatus.submitted ||
+      status == LoanApplicationStatus.eligible ||
+      status == LoanApplicationStatus.underReview ||
+      status == LoanApplicationStatus.approved;
 
   /// Whether the two-person approval threshold has been met.
   bool get hasTwoApprovals => approvalCount >= 2;
