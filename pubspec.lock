@@ -616,14 +616,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.5.0"
-  otp_text_field:
-    dependency: "direct main"
-    description:
-      name: otp_text_field
-      sha256: "4e828b0e23ea798dd7ee8e88c43eede66db191892dbb4cef120e8b100a333697"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.5"
   package_config:
     dependency: transitive
     description:
@@ -878,7 +870,7 @@ packages:
     source: hosted
     version: "1.4.1"
   supabase:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: supabase
       sha256: "0645becf76f49d2633d8ec9bfd78ab98dce42de6899da8fa1f069c2c836d5d23"

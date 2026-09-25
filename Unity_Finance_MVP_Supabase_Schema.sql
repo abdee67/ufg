@@ -252,6 +252,7 @@ create table public.profiles (
   address text,
   date_of_birth date,
   status public.profile_status not null default 'active',
+  must_change_password boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -367,6 +368,12 @@ as $$
   from public.members
   where profile_id = auth.uid()
     and status = 'active'
+    and not exists (
+      select 1
+      from public.profiles
+      where id = auth.uid()
+        and must_change_password = true
+    )
   limit 1;
 $$;
 
@@ -395,7 +402,7 @@ begin
       split_part(coalesce(new.email, ''), '@', 1),
       'New User'
     ),
-    nullif(trim(new.raw_user_meta_data ->> 'phone'), ''),
+    new.phone,
     new.email
   )
   on conflict (id) do nothing;
@@ -420,6 +427,53 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure private.handle_new_auth_user();
+
+-- A temporary password is marked by an administrator on the profile. The flag
+-- is cleared only when Supabase has persisted a real password update, never by
+-- a mobile client updating application data.
+create or replace function private.clear_password_change_requirement()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, private
+as $$
+begin
+  perform set_config('private.password_change_clear', 'true', true);
+  update public.profiles
+  set must_change_password = false
+  where id = new.id
+    and must_change_password = true;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_password_changed on auth.users;
+
+create trigger on_auth_user_password_changed
+after update of encrypted_password on auth.users
+for each row
+when (old.encrypted_password is distinct from new.encrypted_password)
+execute procedure private.clear_password_change_requirement();
+
+create or replace function private.protect_password_change_requirement()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.must_change_password is distinct from old.must_change_password
+     and auth.role() = 'authenticated'
+     and current_setting('private.password_change_clear', true) is distinct from 'true' then
+    raise exception 'Password-change status is managed by the authentication workflow';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_protect_password_change_requirement on public.profiles;
+
+create trigger profiles_protect_password_change_requirement
+before update of must_change_password on public.profiles
+for each row execute procedure private.protect_password_change_requirement();
 
 create table public.membership_status_history (
   id uuid primary key default gen_random_uuid(),
