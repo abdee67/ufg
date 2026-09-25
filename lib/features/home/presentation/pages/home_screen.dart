@@ -324,37 +324,34 @@ class _QuickActionsSection extends StatelessWidget {
       children: [
         const SectionHeader(title: 'Quick Actions'),
         const SizedBox(height: AppSizes.spacingM),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _ActionItem(
-                icon: AppIcons.savings.outline,
-                label: 'Savings',
-                color: ColorConstants.brandGreen,
-                onTap: () => context.push(AppRoutes.savings),
-              ),
-              _ActionItem(
-                icon: AppIcons.loans.outline,
-                label: 'Loans',
-                color: ColorConstants.navyBlue,
-                onTap: () => context.push(AppRoutes.loans),
-              ),
-              _ActionItem(
-                icon: AppIcons.payments.outline,
-                label: 'Pay',
-                color: Colors.orange,
-                onTap: () {},
-              ),
-              _ActionItem(
-                icon: AppIcons.members.outline,
-                label: 'Members',
-                color: Colors.purple,
-                onTap: () {},
-              ),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _ActionItem(
+              icon: AppIcons.savings.outline,
+              label: 'Savings',
+              color: ColorConstants.brandGreen,
+              onTap: () => context.push(AppRoutes.savings),
+            ),
+            _ActionItem(
+              icon: AppIcons.loans.outline,
+              label: 'Loans',
+              color: ColorConstants.navyBlue,
+              onTap: () => context.push(AppRoutes.loans),
+            ),
+            _ActionItem(
+              icon: AppIcons.payments.outline,
+              label: 'Pay',
+              color: Colors.orange,
+              onTap: () {},
+            ),
+            _ActionItem(
+              icon: AppIcons.members.outline,
+              label: 'Members',
+              color: Colors.purple,
+              onTap: () {},
+            ),
+          ],
         ),
       ],
     );

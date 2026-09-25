@@ -5,15 +5,12 @@ import 'package:ufg/features/auth/data/datasources/auth_data_source_impl.dart';
 import 'package:ufg/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:ufg/features/auth/domain/repositories/auth_repository.dart';
 import 'package:ufg/features/auth/domain/usecases/check_startup_session.dart';
-import 'package:ufg/features/auth/domain/usecases/forgot_password.dart';
+import 'package:ufg/features/auth/domain/usecases/change_password.dart';
 import 'package:ufg/features/auth/domain/usecases/get_current_profile.dart';
-import 'package:ufg/features/auth/domain/usecases/reset_password.dart';
-import 'package:ufg/features/auth/domain/usecases/send_otp.dart';
+import 'package:ufg/features/auth/domain/usecases/requires_password_change.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_in.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_out.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_up.dart';
-import 'package:ufg/features/auth/domain/usecases/verify_otp.dart';
-import 'package:ufg/features/auth/domain/usecases/verify_password_reset_otp.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:ufg/features/membership/data/datasources/membership_remote_data_source.dart';
@@ -81,27 +78,14 @@ void initDependency() {
   getit.registerLazySingleton(() => SignIn(getit()));
   getit.registerLazySingleton(() => SignUp(getit()));
   getit.registerLazySingleton(() => SignOut(getit()));
-  getit.registerLazySingleton(() => SendOtp(getit()));
-  getit.registerLazySingleton(() => VerifyOTP(getit()));
-  getit.registerLazySingleton(() => VerifyPasswordResetOtp(getit()));
   getit.registerLazySingleton(() => CheckStartupSession(getit()));
-  getit.registerLazySingleton(() => ForgotPassword(getit()));
-  getit.registerLazySingleton(() => ResetPassword(getit()));
+  getit.registerLazySingleton(() => ChangePassword(getit()));
+  getit.registerLazySingleton(() => RequiresPasswordChange(getit()));
   getit.registerLazySingleton(() => GetCurrentProfile(getit()));
 
   // Auth bloc
   getit.registerFactory(
-    () => AuthBloc(
-      getit(),
-      getit(),
-      getit(),
-      getit(),
-      getit(),
-      getit(),
-      getit(),
-      getit(),
-      getit(),
-    ),
+    () => AuthBloc(getit(), getit(), getit(), getit(), getit(), getit()),
   );
 
   //================== injecting membership ===================

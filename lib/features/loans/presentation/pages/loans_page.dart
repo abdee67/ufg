@@ -42,8 +42,9 @@ class _LoansPageState extends State<LoansPage> {
     SnackBarAction? action,
   }) {
     final messenger = ScaffoldMessenger.of(scaffoldContext);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
+    messenger.removeCurrentSnackBar();
+
+    final controller = messenger.showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 5),
         content: Text(message),
@@ -52,6 +53,11 @@ class _LoansPageState extends State<LoansPage> {
         action: action,
       ),
     );
+
+    // Force dismiss after duration even if action is present
+    Future.delayed(const Duration(seconds: 5), () {
+      controller.close();
+    });
   }
 
   @override
@@ -76,11 +82,17 @@ class _LoansPageState extends State<LoansPage> {
             listener: (context, state) {
               if (state is LoanActionSuccess) {
                 _showSnackBar(
-                    scaffoldContext, state.message, ColorConstants.success);
+                  scaffoldContext,
+                  state.message,
+                  ColorConstants.success,
+                );
                 _refresh();
               } else if (state is LoanFailure) {
                 _showSnackBar(
-                    scaffoldContext, state.message, ColorConstants.error);
+                  scaffoldContext,
+                  state.message,
+                  ColorConstants.error,
+                );
               }
             },
             child: BlocBuilder<LoanBloc, LoanState>(
@@ -101,9 +113,12 @@ class _LoansPageState extends State<LoansPage> {
                   return _LoansDashboardBody(
                     state: state,
                     onRefresh: _refresh,
-                    showSnackBar: (msg, color, {action}) =>
-                        _showSnackBar(scaffoldContext, msg, color,
-                            action: action),
+                    showSnackBar: (msg, color, {action}) => _showSnackBar(
+                      scaffoldContext,
+                      msg,
+                      color,
+                      action: action,
+                    ),
                   );
                 }
 

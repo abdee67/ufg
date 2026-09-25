@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/utils/app_state_notifier.dart';
 import 'package:ufg/core/widgets/error_state.dart';
 import 'package:ufg/features/auth/presentation/screens/forgotPassword.dart';
-import 'package:ufg/features/auth/presentation/screens/resetPassword.dart';
+import 'package:ufg/features/auth/presentation/screens/change_password_screen.dart';
 import 'package:ufg/features/auth/presentation/screens/welcome_screen.dart';
 import 'package:ufg/features/auth/presentation/screens/login_screen.dart';
 import 'package:ufg/features/auth/presentation/screens/signup_screen.dart';
@@ -45,6 +46,16 @@ class AppRouter {
   late final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.initialRoute,
+    refreshListenable: getit<AppStateNotifier>(),
+    redirect: (context, state) {
+      final mustChangePassword = getit<AppStateNotifier>().mustChangePassword;
+      final onPasswordChangeScreen =
+          state.matchedLocation == AppRoutes.changePasswordScreen;
+      if (mustChangePassword && !onPasswordChangeScreen) {
+        return AppRoutes.changePasswordScreen;
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: AppRoutes.initialRoute,
@@ -98,13 +109,11 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.forgotPasswordScreen,
-        builder: (_, _) => ForgotPasswordScreen(),
+        builder: (_, _) => const ForgotPasswordScreen(),
       ),
       GoRoute(
-        path: AppRoutes.resetPasswordScreen,
-        builder: (_, state) => ResetPasswordScreen(
-          email: state.uri.queryParameters['email'] ?? '',
-        ),
+        path: AppRoutes.changePasswordScreen,
+        builder: (_, _) => const ChangePasswordScreen(),
       ),
       GoRoute(
         path: AppRoutes.membershipApply,

@@ -4,7 +4,7 @@ class AppRoutes {
   static const String loginScreen = '/login';
   static const String signupScreen = '/signup';
   static const String forgotPasswordScreen = '/forgot-password';
-  static const String resetPasswordScreen = '/reset-password';
+  static const String changePasswordScreen = '/change-password';
   static const String homeScreen = '/home';
   static const String searchScreen = '/search';
   static const String locationScreen = '/location';
