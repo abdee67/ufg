@@ -5,12 +5,13 @@ import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
 import 'package:ufg/core/constants/app_text_styles.dart';
+import 'package:ufg/core/utils/phone_normalizer.dart';
+import 'package:ufg/core/utils/password_policy.dart';
 import 'package:ufg/core/widgets/custom_textField.dart';
 import 'package:ufg/core/widgets/primary_button.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_state.dart';
-import 'package:ufg/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:ufg/features/auth/presentation/widgets/auth_shared.dart';
 import 'package:ufg/features/auth/presentation/widgets/password_visibility_toggle.dart';
 
@@ -22,8 +23,7 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _email = TextEditingController(),
-      _password = TextEditingController(),
+  final _password = TextEditingController(),
       _confirm = TextEditingController(),
       _fullName = TextEditingController(),
       _phone = TextEditingController();
@@ -31,7 +31,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    _email.dispose();
     _password.dispose();
     _confirm.dispose();
     _fullName.dispose();
@@ -47,7 +46,9 @@ class _SignupScreenState extends State<SignupScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is EmailVerificationSent) _showVerification();
+          if (state is AuthSuccess) {
+            context.go(AppRoutes.membershipApply);
+          }
           if (state is AuthFailure) _message(_cleanError(state.message), true);
         },
         builder: (context, state) {
@@ -116,23 +117,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                   label: 'Phone Number',
                                   icon: AppIcons.phone.outline,
                                   keyboardType: TextInputType.phone,
-                                  autofillHints: const [AutofillHints.telephoneNumber],
+                                  autofillHints: const [
+                                    AutofillHints.telephoneNumber,
+                                  ],
                                   validator: (value) =>
-                                      _validateRequired(value, 'Phone Number'),
-                                ),
-                                const SizedBox(height: AppSizes.spacingM),
-                                CustomTextField(
-                                  controller: _email,
-                                  label: 'Email Address',
-                                  icon: AppIcons.mail.outline,
-                                  keyboardType: TextInputType.emailAddress,
-                                  autofillHints: const [AutofillHints.email],
-                                  validator: (value) {
-                                    final text = value?.trim() ?? '';
-                                    if (text.isEmpty) return 'Please enter Email Address';
-                                    if (!text.contains('@')) return 'Enter a valid email address';
-                                    return null;
-                                  },
+                                      PhoneNormalizer.normalize(value ?? '') ==
+                                          null
+                                      ? 'Enter a valid phone number'
+                                      : null,
                                 ),
                                 const SizedBox(height: AppSizes.spacingXl),
                                 Text(
@@ -145,17 +137,26 @@ class _SignupScreenState extends State<SignupScreen> {
                                   label: 'Password',
                                   icon: AppIcons.lock.outline,
                                   obscureText: _obscurePassword,
-                                  autofillHints: const [AutofillHints.newPassword],
+                                  autofillHints: const [
+                                    AutofillHints.newPassword,
+                                  ],
                                   validator: (value) {
                                     final text = value ?? '';
-                                    if (text.isEmpty) return 'Please enter Password';
-                                    if (text.length < 6) return 'Use at least 6 characters';
-                                    return null;
+                                    if (text.isEmpty) {
+                                      return 'Please enter Password';
+                                    }
+                                    return PasswordPolicy.validationMessage(
+                                      text,
+                                      phone: PhoneNormalizer.normalize(
+                                        _phone.text,
+                                      ),
+                                    );
                                   },
                                   suffixIcon: PasswordVisibilityToggle(
                                     visible: !_obscurePassword,
                                     onToggle: () => setState(
-                                      () => _obscurePassword = !_obscurePassword,
+                                      () =>
+                                          _obscurePassword = !_obscurePassword,
                                     ),
                                   ),
                                 ),
@@ -167,8 +168,12 @@ class _SignupScreenState extends State<SignupScreen> {
                                   obscureText: _obscureConfirm,
                                   validator: (value) {
                                     final text = value ?? '';
-                                    if (text.isEmpty) return 'Please enter Confirm Password';
-                                    if (text != _password.text) return 'Passwords do not match';
+                                    if (text.isEmpty) {
+                                      return 'Please enter Confirm Password';
+                                    }
+                                    if (text != _password.text) {
+                                      return 'Passwords do not match';
+                                    }
                                     return null;
                                   },
                                   suffixIcon: PasswordVisibilityToggle(
@@ -190,7 +195,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           const SizedBox(height: AppSizes.spacingM),
                           Center(
                             child: TextButton(
-                              onPressed: () => context.go(AppRoutes.loginScreen),
+                              onPressed: () =>
+                                  context.go(AppRoutes.loginScreen),
                               child: Text(
                                 'Already have an account?  Sign in',
                                 style: TextStyle(
@@ -222,33 +228,13 @@ class _SignupScreenState extends State<SignupScreen> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
-          SignUpRequested(
-            email: _email.text.trim(),
-            password: _password.text,
-            fullName: _fullName.text.trim(),
-            phone: _phone.text.trim(),
-          ),
-        );
+      SignUpRequested(
+        password: _password.text,
+        fullName: _fullName.text.trim(),
+        phone: PhoneNormalizer.normalize(_phone.text)!,
+      ),
+    );
   }
-
-  void _showVerification() => showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => EmailVerificationScreen(
-          email: _email.text.trim(),
-          onVerified: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Account verified! Please complete your membership application.',
-                ),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            context.go(AppRoutes.membershipApply);
-          },
-        ),
-      );
 
   String _cleanError(String message) =>
       message.replaceFirst(RegExp(r'^Exception: '), '');

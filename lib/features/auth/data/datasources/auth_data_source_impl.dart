@@ -12,10 +12,10 @@ class AuthDataSourceImpl implements AuthDataSource {
   SupabaseClient get _client => SupabaseConfig.client;
 
   @override
-  Future<Session> signIn(String email, String password) async {
+  Future<Session> signIn(String phone, String password) async {
     try {
       final result = await _client.auth.signInWithPassword(
-        email: email,
+        phone: phone,
         password: password,
       );
       if (result.session == null) {
@@ -39,15 +39,10 @@ class AuthDataSourceImpl implements AuthDataSource {
   }
 
   @override
-  Future<void> signUp(
-    String email,
-    String password,
-    String fullname,
-    String phone,
-  ) async {
+  Future<void> signUp(String password, String fullname, String phone) async {
     try {
       final result = await _client.auth.signUp(
-        email: email,
+        phone: phone,
         password: password,
         data: {'full_name': fullname, 'phone': phone},
       );
@@ -56,66 +51,11 @@ class AuthDataSourceImpl implements AuthDataSource {
           message: 'We could not create your account. Please try again.',
         );
       }
-    } catch (error, stackTrace) {
-      throw AuthErrorMapper.toException(error, stackTrace);
-    }
-  }
-
-  @override
-  Future<void> sendOtp(String email) async {
-    try {
-      final result = await _client.auth.resend(
-        type: OtpType.signup,
-        email: email,
-      );
-      if (result.messageId == null) {
+      if (result.session == null) {
         throw const AuthExceptions(
-          message: 'We could not send a verification code. Please try again.',
+          message:
+              'Your account was created, but a session could not be started. Please contact support.',
         );
-      }
-    } catch (_) {
-      try {
-        await _client.auth.signInWithOtp(
-          email: email,
-          shouldCreateUser: true,
-        );
-      } catch (error, stackTrace) {
-        throw AuthErrorMapper.toException(error, stackTrace);
-      }
-    }
-  }
-
-  @override
-  Future<void> verifyOTP(String email, String otp) async {
-    try {
-      final result = await _client.auth.verifyOTP(
-        email: email,
-        token: otp,
-        type: OtpType.email,
-      );
-      if (result.session == null) {
-        throw const InvalidOtpException();
-      }
-
-      final verifiedUser = result.user ?? _client.auth.currentUser;
-      if (verifiedUser == null) {
-        throw const InvalidOtpException();
-      }
-    } catch (error, stackTrace) {
-      throw AuthErrorMapper.toException(error, stackTrace);
-    }
-  }
-
-  @override
-  Future<void> verifyPasswordResetOtp(String email, String otp) async {
-    try {
-      final result = await _client.auth.verifyOTP(
-        email: email,
-        token: otp,
-        type: OtpType.recovery,
-      );
-      if (result.session == null) {
-        throw const InvalidOtpException();
       }
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
@@ -132,18 +72,32 @@ class AuthDataSourceImpl implements AuthDataSource {
   }
 
   @override
-  Future<void> forgotPassword(String email) async {
+  Future<void> changePassword(String password) async {
     try {
-      await _client.auth.resetPasswordForEmail(email);
+      await _client.auth.updateUser(UserAttributes(password: password));
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
   }
 
   @override
-  Future<void> resetPassword(String email, String password) async {
+  Future<bool> requiresPasswordChange() async {
     try {
-      await _client.auth.updateUser(UserAttributes(password: password));
+      final user = _client.auth.currentUser;
+      if (user == null) {
+        throw const AuthExceptions(message: 'No authenticated user found.');
+      }
+      final profile = await _client
+          .from('profiles')
+          .select('must_change_password')
+          .eq('id', user.id)
+          .maybeSingle();
+      if (profile == null) {
+        throw const AuthExceptions(
+          message: 'Profile not found. Please contact support.',
+        );
+      }
+      return profile['must_change_password'] == true;
     } catch (error, stackTrace) {
       throw AuthErrorMapper.toException(error, stackTrace);
     }
@@ -154,10 +108,11 @@ class AuthDataSourceImpl implements AuthDataSource {
     try {
       final session = _client.auth.currentSession;
       if (session != null) {
+        if (await requiresPasswordChange()) return 'password_change_required';
         return 'authenticated';
       }
       //check memebrship status
-      
+
       return 'no_session';
     } catch (e) {
       if (kDebugMode) {
@@ -172,9 +127,7 @@ class AuthDataSourceImpl implements AuthDataSource {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        throw const AuthExceptions(
-          message: 'No authenticated user found.',
-        );
+        throw const AuthExceptions(message: 'No authenticated user found.');
       }
 
       // Fetch profile

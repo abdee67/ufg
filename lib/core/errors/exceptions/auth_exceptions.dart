@@ -6,7 +6,7 @@ class AuthExceptions extends AppExceptions {
 
 class InvalidCredentialsException extends AuthExceptions {
   const InvalidCredentialsException({
-    super.message = 'Your email or password is incorrect.',
+    super.message = 'Invalid phone number or password.',
     super.code,
     super.cause,
   });

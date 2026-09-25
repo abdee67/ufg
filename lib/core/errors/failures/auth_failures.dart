@@ -49,7 +49,7 @@ class AuthErrorMapper {
         text.contains('already been registered')) {
       return AuthExceptions(
         message:
-            'An account already exists for this email. Please sign in instead.',
+            'An account already exists for this phone number. Please sign in instead.',
         code: code,
         cause: error,
       );
@@ -160,7 +160,8 @@ Future<Either<Failures, T>> authRepositoryGuard<T>(
 }
 
 extension LegacyErrorHandler on Object {
-  Future<Either<Failures, T>> repoErrorHnadler<T>(//used only in payment repo impl, but shouldnt
+  Future<Either<Failures, T>> repoErrorHnadler<T>(
+    //used only in payment repo impl, but shouldnt
     Future<T> Function() operation,
   ) => authRepositoryGuard(operation);
 

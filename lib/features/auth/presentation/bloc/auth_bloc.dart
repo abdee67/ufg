@@ -1,13 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ufg/features/auth/domain/usecases/check_startup_session.dart';
-import 'package:ufg/features/auth/domain/usecases/forgot_password.dart';
-import 'package:ufg/features/auth/domain/usecases/reset_password.dart';
-import 'package:ufg/features/auth/domain/usecases/send_otp.dart';
+import 'package:ufg/features/auth/domain/usecases/change_password.dart';
+import 'package:ufg/features/auth/domain/usecases/requires_password_change.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_in.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_out.dart';
 import 'package:ufg/features/auth/domain/usecases/sign_up.dart';
-import 'package:ufg/features/auth/domain/usecases/verify_otp.dart';
-import 'package:ufg/features/auth/domain/usecases/verify_password_reset_otp.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -15,27 +12,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignIn signIn;
   final SignOut signOut;
   final SignUp signUp;
-  final SendOtp sendOtp;
-  final VerifyOTP verifyOTP;
-  final VerifyPasswordResetOtp verifyPasswordResetOtp;
   //  final GetCurrentLocationAddress getCurrentLocationAddress;
   // final GetCurrentCustomer getCurrentCustomer;
   // final UpdateCustomerProfile updateCustomerProfile;
-  final ForgotPassword forgotPassword;
-  final ResetPassword resetPassword;
+  final ChangePassword changePassword;
+  final RequiresPasswordChange requiresPasswordChange;
   final CheckStartupSession checkStartupSession;
   AuthBloc(
     this.signIn,
     this.signOut,
     this.signUp,
-    this.sendOtp,
-    this.verifyOTP,
-    this.verifyPasswordResetOtp,
     // this.getCurrentLocationAddress,
     // this.getCurrentCustomer,
     // this.updateCustomerProfile,
-    this.forgotPassword,
-    this.resetPassword,
+    this.changePassword,
+    this.requiresPasswordChange,
     this.checkStartupSession,
   ) : super(AuthInitial()) {
     on<CheckStartupSessionRequested>((event, emit) async {
@@ -44,6 +35,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       result.fold((failure) => emit(AuthFailure(failure.message)), (status) {
         if (status == 'authenticated') {
           emit(AuthSuccess());
+        } else if (status == 'password_change_required') {
+          emit(PasswordChangeRequired());
         } else if (status == 'no_session') {
           emit(AuthLoggedOut());
         } else {
@@ -54,24 +47,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<SignInRequested>((event, emit) async {
       emit(AuthLoading());
-      final result = await signIn(event.email, event.password);
-      result.fold(
+      final result = await signIn(event.phone, event.password);
+      final failure = result.fold((failure) => failure, (_) => null);
+      if (failure != null) {
+        emit(AuthFailure(failure.message));
+        return;
+      }
+
+      final required = await requiresPasswordChange();
+      required.fold(
         (failure) => emit(AuthFailure(failure.message)),
-        (_) => emit(AuthSuccess()),
+        (isRequired) =>
+            emit(isRequired ? PasswordChangeRequired() : AuthSuccess()),
       );
     });
 
     on<SignUpRequested>((event, emit) async {
       emit(AuthLoading());
-      final result = await signUp(
-        event.email,
-        event.password,
-        event.fullName,
-        event.phone,
-      );
+      final result = await signUp(event.password, event.fullName, event.phone);
       result.fold(
         (failure) => emit(AuthFailure(failure.message)),
-        (_) => emit(EmailVerificationSent()),
+        (_) => emit(AuthSuccess()),
       );
     });
     on<SignOutRequested>((event, emit) async {
@@ -82,45 +78,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         (_) => emit(AuthLoggedOut()),
       );
     });
-    on<SendOtpRequested>((event, emit) async {
+    on<ChangePasswordRequested>((event, emit) async {
       emit(AuthLoading());
-      final result = await sendOtp(event.email);
+      final result = await changePassword(event.password);
       result.fold(
         (failure) => emit(AuthFailure(failure.message)),
-        (_) => emit(OtpSent()),
-      );
-    });
-
-    on<VerifyOtpRequested>((event, emit) async {
-      emit(AuthLoading());
-      final result = await verifyOTP(event.email, event.otp);
-      result.fold(
-        (failure) => emit(AuthFailure(failure.message)),
-        (_) => emit(OtpVerified()),
-      );
-    });
-    on<ForgotPasswordRequested>((event, emit) async {
-      emit(AuthLoading());
-      final result = await forgotPassword(event.email);
-      result.fold(
-        (failure) => emit(AuthFailure(failure.message)),
-        (_) => emit(ForgotPasswordSent()),
-      );
-    });
-    on<VerifyPasswordResetOtpRequested>((event, emit) async {
-      emit(AuthLoading());
-      final result = await verifyPasswordResetOtp(event.email, event.otp);
-      result.fold(
-        (failure) => emit(AuthFailure(failure.message)),
-        (_) => emit(PasswordResetOtpVerified()),
-      );
-    });
-    on<ResetPasswordRequested>((event, emit) async {
-      emit(AuthLoading());
-      final result = await resetPassword(event.email, event.password);
-      result.fold(
-        (failure) => emit(AuthFailure(failure.message)),
-        (_) => emit(ResetPasswordSent()),
+        (_) => emit(PasswordChanged()),
       );
     });
   }

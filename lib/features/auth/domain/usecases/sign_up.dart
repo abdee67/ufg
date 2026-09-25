@@ -7,11 +7,10 @@ class SignUp {
   SignUp(this.repo);
 
   Future<Either<Failures, void>> call(
-    String email,
     String password,
     String fullName,
     String phone,
   ) {
-    return repo.signUp(email, password, fullName, phone);
+    return repo.signUp(password, fullName, phone);
   }
 }

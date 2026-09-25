@@ -5,6 +5,8 @@ import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
 import 'package:ufg/core/constants/session_constants.dart';
+import 'package:ufg/core/utils/phone_normalizer.dart';
+import 'package:ufg/core/utils/app_state_notifier.dart';
 import 'package:ufg/core/utils/session_expiry_policy.dart';
 import 'package:ufg/core/widgets/custom_textField.dart';
 import 'package:ufg/core/widgets/primary_button.dart';
@@ -16,6 +18,7 @@ import 'package:ufg/features/auth/presentation/widgets/password_visibility_toggl
 import 'package:ufg/features/membership/presentation/bloc/membership_bloc.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_event.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_state.dart';
+import 'package:ufg/injection_container.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,7 +28,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isCheckingMembership = false;
@@ -43,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -63,6 +66,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 context.read<MembershipBloc>().add(
                   CheckMembershipAfterAuthRequested(),
                 );
+              } else if (state is PasswordChangeRequired) {
+                setState(() => _isCheckingMembership = false);
+                getit<AppStateNotifier>().requirePasswordChange();
+                context.go(AppRoutes.changePasswordScreen);
               } else if (state is AuthFailure) {
                 setState(() => _isCheckingMembership = false);
                 _message(state.message, true);
@@ -114,11 +121,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Column(
                               children: [
                                 CustomTextField(
-                                  controller: _emailController,
-                                  label: 'Email address',
-                                  icon: AppIcons.mail.outline,
-                                  keyboardType: TextInputType.emailAddress,
-                                  autofillHints: const [AutofillHints.email],
+                                  controller: _phoneController,
+                                  label: 'Phone number',
+                                  icon: AppIcons.phone.outline,
+                                  keyboardType: TextInputType.phone,
+                                  autofillHints: const [
+                                    AutofillHints.telephoneNumber,
+                                  ],
                                 ),
                                 const SizedBox(height: AppSizes.fieldGap),
                                 CustomTextField(
@@ -199,13 +208,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() {
-    if (_emailController.text.trim().isEmpty ||
+    if (_phoneController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
-      _message('Enter your email and password.', true);
+      _message('Enter your phone number and password.', true);
+      return;
+    }
+    final phone = PhoneNormalizer.normalize(_phoneController.text);
+    if (phone == null) {
+      _message('Enter a valid phone number.', true);
       return;
     }
     context.read<AuthBloc>().add(
-      SignInRequested(_emailController.text.trim(), _passwordController.text),
+      SignInRequested(phone, _passwordController.text),
     );
   }
 

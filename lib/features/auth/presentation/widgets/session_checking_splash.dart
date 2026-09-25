@@ -8,12 +8,14 @@ import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_images.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/utils/session_expiry_policy.dart';
+import 'package:ufg/core/utils/app_state_notifier.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
 import 'package:ufg/features/auth/presentation/bloc/auth_state.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_bloc.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_event.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_state.dart';
+import 'package:ufg/injection_container.dart';
 
 /// The authoritative startup screen.
 ///
@@ -62,7 +64,9 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
       if (!mounted) return;
       final showOnboarding = await _shouldShowOnboarding();
       if (!mounted) return;
-      context.go(showOnboarding ? AppRoutes.onboardingScreen : AppRoutes.loginScreen);
+      context.go(
+        showOnboarding ? AppRoutes.onboardingScreen : AppRoutes.loginScreen,
+      );
       return;
     }
 
@@ -91,7 +95,12 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
             if (state is AuthSuccess) {
               // Auth confirmed → ask MembershipBloc for the routing decision
               setState(() => _statusMessage = 'Verifying membership status...');
-              context.read<MembershipBloc>().add(CheckMembershipAfterAuthRequested());
+              context.read<MembershipBloc>().add(
+                CheckMembershipAfterAuthRequested(),
+              );
+            } else if (state is PasswordChangeRequired) {
+              getit<AppStateNotifier>().requirePasswordChange();
+              context.go(AppRoutes.changePasswordScreen);
             } else if (state is AuthLoggedOut || state is AuthFailure) {
               // No valid session → login
               context.go(AppRoutes.loginScreen);
@@ -152,7 +161,11 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
                       textAlign: TextAlign.center,
                     ),
                   ] else ...[
-                    Icon(AppIcons.warning.outline, size: 48, color: colorScheme.error),
+                    Icon(
+                      AppIcons.warning.outline,
+                      size: 48,
+                      color: colorScheme.error,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       _statusMessage,

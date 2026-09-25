@@ -12,54 +12,38 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failures, Session>> signIn(
-    String email,
+    String phone,
     String password,
   ) async {
     return authRepositoryGuard(() async {
-      final result = await remoteDataSource.signIn(email, password);
+      final result = await remoteDataSource.signIn(phone, password);
       return result;
     });
   }
 
   @override
   Future<Either<Failures, void>> signUp(
-    String email,
     String password,
     String fullName,
     String phone,
   ) async {
     return authRepositoryGuard(() async {
-      final signup = await remoteDataSource.signUp(
-        email,
-        password,
-        fullName,
-        phone,
-      );
+      final signup = await remoteDataSource.signUp(password, fullName, phone);
       return signup;
     });
   }
 
   @override
-  Future<Either<Failures, void>> sendOtp(String email) async {
+  Future<Either<Failures, void>> changePassword(String password) async {
     return authRepositoryGuard(() async {
-      return await remoteDataSource.sendOtp(email);
+      return await remoteDataSource.changePassword(password);
     });
   }
 
   @override
-  Future<Either<Failures, void>> verifyOtp(String email, String otp) async {
+  Future<Either<Failures, bool>> requiresPasswordChange() async {
     return authRepositoryGuard(() async {
-      return await remoteDataSource.verifyOTP(email, otp);
-    });
-  }
-
-  @override
-  Future<Either<Failures, void>> verifyPasswordResetOtp(
-    String email,
-    String otp,
-  ) async {
-    return authRepositoryGuard(() async {
-      return await remoteDataSource.verifyPasswordResetOtp(email, otp);
+      return await remoteDataSource.requiresPasswordChange();
     });
   }
 
@@ -76,25 +60,6 @@ class AuthRepositoryImpl implements AuthRepository {
     return authRepositoryGuard(() async {
       final status = await remoteDataSource.checkStartupSession();
       return status;
-    });
-  }
-
-  @override
-  Future<Either<Failures, void>> forgotPassword(String email) async {
-    return authRepositoryGuard(() async {
-      final forgotPassword = await remoteDataSource.forgotPassword(email);
-      return forgotPassword;
-    });
-  }
-
-  @override
-  Future<Either<Failures, void>> resetPassword(
-    String email,
-    String password,
-  ) async {
-    return authRepositoryGuard(() async {
-      final reset = await remoteDataSource.resetPassword(email, password);
-      return reset;
     });
   }
 

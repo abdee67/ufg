@@ -8,7 +8,7 @@ class SignIn {
   final AuthRepository repo;
   SignIn(this.repo);
 
-  Future<Either<Failures, Session>> call(String email, String password) {
-    return repo.signIn(email, password);
+  Future<Either<Failures, Session>> call(String phone, String password) {
+    return repo.signIn(phone, password);
   }
 }
