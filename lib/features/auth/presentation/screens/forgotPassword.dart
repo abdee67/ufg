@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
@@ -9,6 +10,21 @@ import 'package:ufg/features/auth/presentation/widgets/auth_shared.dart';
 /// This screen never collects identity information and never initiates a reset.
 class ForgotPasswordScreen extends StatelessWidget {
   const ForgotPasswordScreen({super.key});
+
+  Future<void> _openAdminTelegram(BuildContext context) async {
+    const message =
+        'I forgot my password please change My Password. My phone number is';
+    final uri = Uri.parse(
+      'https://t.me/ClassNotFound?text=${Uri.encodeComponent(message)}',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open Telegram')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +71,25 @@ class ForgotPasswordScreen extends StatelessWidget {
                           Text(
                             'They will provide a temporary password. Sign in with it, then create a new password when prompted.',
                             style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: AppSizes.spacingL),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _openAdminTelegram(context),
+                              icon: Icon(
+                                AppIcons.forward.outline,
+                                size: AppSizes.iconS,
+                              ),
+                              label: const Text('Contact Admin on Telegram'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),

@@ -15,6 +15,7 @@ import 'package:ufg/features/auth/presentation/bloc/auth_event.dart';
 import 'package:ufg/features/home/presentation/bloc/home_bloc.dart';
 import 'package:ufg/features/home/presentation/bloc/home_event.dart';
 import 'package:ufg/features/home/presentation/bloc/home_state.dart';
+import 'package:ufg/features/loans/domain/entities/loan_entity.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -106,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () => context.push(AppRoutes.searchScreen),
                           ),
                           const SizedBox(height: AppSizes.spacingXl),
-                          _QuickActionsSection(),
+                          _QuickActionsSection(activeLoans: state.activeLoans),
                           const SizedBox(height: AppSizes.spacingXl),
                           _SavingsCard(
                                 totalSavings:
@@ -317,6 +318,31 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _QuickActionsSection extends StatelessWidget {
+  final List<LoanEntity> activeLoans;
+
+  const _QuickActionsSection({required this.activeLoans});
+
+  void _handlePayTap(BuildContext context) {
+    final activeLoan =
+        activeLoans.where((loan) => loan.isActive || loan.isOverdue).firstOrNull ??
+            activeLoans.firstOrNull;
+
+    if (activeLoan == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('You do not have an active loan to pay.'),
+            backgroundColor: ColorConstants.warning,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      return;
+    }
+
+    context.push('${AppRoutes.loans}/repay/${activeLoan.id}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -343,7 +369,7 @@ class _QuickActionsSection extends StatelessWidget {
               icon: AppIcons.payments.outline,
               label: 'Pay',
               color: Colors.orange,
-              onTap: () {},
+              onTap: () => _handlePayTap(context),
             ),
             _ActionItem(
               icon: AppIcons.members.outline,
