@@ -526,15 +526,24 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
     List<Map<String, dynamic>>? allocations,
   }) async {
     try {
+      final repaymentMethodCode = switch (paymentMethodCode
+          .trim()
+          .toLowerCase()) {
+        'bank_transfer' => 'bank',
+        'cash' => 'cash',
+        'bank' => 'bank',
+        'wallet' => 'wallet',
+        final value => value,
+      };
+
       final methodRes = await _client
           .from('payment_methods')
           .select('id')
           .eq('code', paymentMethodCode)
           .single();
-
       final paymentMethodId = methodRes['id'] as String;
 
-      final paymentInsert = await _client
+      final payment = await _client
           .from('payments')
           .insert({
             'payer_profile_id': _currentUserId,
@@ -544,14 +553,40 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
             'status': 'pending',
             'purpose_type': 'loan_repayment',
             'purpose_id': loanId,
-            'external_reference': externalReference,
+            'external_reference': externalReference.trim().isEmpty
+                ? null
+                : externalReference.trim(),
             'payment_proof_path': paymentProofPath,
-            'created_at': DateTime.now().toIso8601String(),
           })
-          .select()
+          .select('id')
           .single();
 
-      return Map<String, dynamic>.from(paymentInsert);
+      final idempotencyKey =
+          'loan-repayment-$_currentUserId-${DateTime.now().microsecondsSinceEpoch}';
+      final response = await _client.rpc(
+        'create_loan_repayment_submission_v3',
+        params: {
+          'p_loan_id': loanId,
+          'p_amount': amount,
+          'p_payment_method_code': repaymentMethodCode,
+          'p_external_reference': externalReference.trim().isEmpty
+              ? null
+              : externalReference.trim(),
+          'p_payment_proof_path': paymentProofPath,
+          'p_payer_name': null,
+          'p_payer_phone': null,
+          'p_payment_id': payment['id'] as String,
+          'p_idempotency_key': idempotencyKey,
+        },
+      );
+
+      if (response == null) {
+        throw const AuthExceptions(
+          message: 'Loan repayment submission returned an empty response.',
+        );
+      }
+
+      return Map<String, dynamic>.from(response as Map);
     } on PostgrestException catch (e) {
       if (kDebugMode) print('submitLoanRepaymentPayment error: ${e.message}');
       throw AuthExceptions(message: e.message);
@@ -590,7 +625,7 @@ class LoansRemoteDataSourceImpl implements LoansRemoteDataSource {
           .uploadBinary(
             storagePath,
             fileBytes,
-            fileOptions: FileOptions(contentType: mimeType, upsert: true),
+            fileOptions: FileOptions(contentType: mimeType, upsert: false),
           );
 
       return storagePath;
