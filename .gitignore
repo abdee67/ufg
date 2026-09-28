@@ -48,10 +48,17 @@ app.*.map.json
 /android/app/release
 
 *_Implementation_Plan.md
-*_Implementation_Prompt.md
+*_Implementation_Plan.sql
 Unity_Finance_*_Migration_Plan.md
 *_MVP_*.md
 Unity_Finance_Full_Product_*.md
 
 google-services.json
+
+#phone and password recovery docs
+admin_phone_auth.md
+manual_password_recovery.md
+tester_phone_migration.md
+migrate_tester_phones.dart
+testers.json
 
