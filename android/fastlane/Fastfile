@@ -11,6 +11,9 @@ platform :android do
       sh("flutter build apk --release")
     end
 
+    require 'dotenv'
+    Dotenv.load("../../assets/env/.env")
+
     firebase_app_distribution(
       app: ENV["FIREBASE_APP_ID"],
       android_artifact_type: "APK",
