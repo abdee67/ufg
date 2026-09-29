@@ -32,7 +32,7 @@ class AppRoutes {
   // Loan Feature Routes
   static const String loans = '/loans';
   static const String loanApply = '/loans/apply';
-  static const String loanApplicationStatus = '/loans/application/:id';
+  static const String loanApplicationStatus = '/loans/application/status/:id';
   static const String loanDetail = '/loans/detail/:id';
   static const String loanRepay = '/loans/repay/:id';
   static const String loanGuarantors = '/loans/guarantors';
