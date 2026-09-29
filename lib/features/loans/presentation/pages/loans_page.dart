@@ -273,7 +273,10 @@ class _LoansDashboardBody extends StatelessWidget {
           label: 'View Status',
           textColor: Colors.white,
           onPressed: () => context.push(
-            '${AppRoutes.loans}/status/${pendingApplication.id}',
+            AppRoutes.loanApplicationStatus.replaceAll(
+              ':id',
+              pendingApplication.id,
+            ),
           ),
         ),
       );
@@ -383,13 +386,6 @@ class _LoansDashboardBody extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacingL),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(
-          color: ColorConstants.warning.withValues(alpha: 0.5),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -441,8 +437,12 @@ class _LoansDashboardBody extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () =>
-                  context.push('${AppRoutes.loans}/status/${application.id}'),
+              onPressed: () => context.push(
+                AppRoutes.loanApplicationStatus.replaceAll(
+                  ':id',
+                  application.id,
+                ),
+              ),
               icon: Icon(AppIcons.forward.outline, size: AppSizes.iconS),
               label: const Text('View Application Status'),
               style: ElevatedButton.styleFrom(

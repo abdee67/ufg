@@ -135,11 +135,7 @@ class _LoanApplicationStatusPageState extends State<LoanApplicationStatusPage> {
                   // Header Summary Card
                   Container(
                     padding: const EdgeInsets.all(AppSizes.spacingL),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                      border: Border.all(color: theme.dividerColor),
-                    ),
+
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -281,11 +277,7 @@ class _LoanApplicationStatusPageState extends State<LoanApplicationStatusPage> {
 
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacingL),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: theme.dividerColor),
-      ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -441,8 +433,10 @@ class _LoanApplicationStatusPageState extends State<LoanApplicationStatusPage> {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currencyFormatter =
-        NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2);
+    final currencyFormatter = NumberFormat.currency(
+      symbol: 'ETB ',
+      decimalDigits: 2,
+    );
 
     Color statusColor = ColorConstants.warning;
     String statusText = 'Pending Decision';
@@ -459,11 +453,7 @@ class _LoanApplicationStatusPageState extends State<LoanApplicationStatusPage> {
 
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacingL),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: theme.dividerColor),
-      ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -35,11 +35,7 @@ class LoanFinancialBreakdown extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacingL),
-      decoration: BoxDecoration(
-        color: isDark ? ColorConstants.surfaceDark : colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: theme.dividerColor),
-      ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
