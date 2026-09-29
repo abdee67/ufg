@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
 
@@ -41,9 +42,9 @@ class PrimaryButton extends StatelessWidget {
             ? const SizedBox(
                 width: 22,
                 height: 22,
-                child: CircularProgressIndicator(
+                child: SpinKitDoubleBounce(
                   color: ColorConstants.onBrand,
-                  strokeWidth: 2.5,
+                  size: 2.5,
                 ),
               )
             : Row(
