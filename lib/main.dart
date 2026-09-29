@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/routes/app_router.dart';
 import 'package:ufg/core/theme/app_theme.dart';
@@ -123,11 +125,17 @@ class _UFGState extends State<UFG> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  Widget loadingScreen() {
+    return Scaffold(
+      body: Center(child: SpinKitWave(color: ColorConstants.accent, size: 50)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const MaterialApp(
-        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+      return MaterialApp(
+        home: Scaffold(body: Center(child: loadingScreen())),
       );
     }
     return MultiProvider(
