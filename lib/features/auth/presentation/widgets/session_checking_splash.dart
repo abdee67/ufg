@@ -16,6 +16,7 @@ import 'package:ufg/features/membership/presentation/bloc/membership_bloc.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_event.dart';
 import 'package:ufg/features/membership/presentation/bloc/membership_state.dart';
 import 'package:ufg/injection_container.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 /// The authoritative startup screen.
 ///
@@ -38,6 +39,7 @@ class SessionCheckingSplash extends StatefulWidget {
 class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
   String _statusMessage = 'Checking your session...';
   bool _hasError = false;
+  Widget? _spinkit;
 
   @override
   void initState() {
@@ -94,7 +96,14 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
           listener: (context, state) {
             if (state is AuthSuccess) {
               // Auth confirmed → ask MembershipBloc for the routing decision
-              setState(() => _statusMessage = 'Verifying membership status...');
+              //cool refresh indicator
+              final spinkit = SpinKitWave(
+                color: colorScheme.primary,
+                size: 50,
+              );
+              setState(() {
+                _spinkit = spinkit;
+              });
               context.read<MembershipBloc>().add(
                 CheckMembershipAfterAuthRequested(),
               );
@@ -146,10 +155,11 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
                   Image.asset(AllImages().logo, height: 110),
                   const SizedBox(height: 32),
                   if (!_hasError) ...[
-                    CircularProgressIndicator(
-                      color: colorScheme.primary,
-                      strokeWidth: 3,
-                    ),
+                    _spinkit ??
+                        SpinKitWave(
+                          color: colorScheme.primary,
+                          size: 50,
+                        ),
                     const SizedBox(height: 20),
                     Text(
                       _statusMessage,

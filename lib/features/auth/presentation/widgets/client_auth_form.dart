@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:ufg/core/widgets/primary_button.dart';
 
 class CustomerAuthForm extends StatelessWidget {
   final List<Widget> children;
@@ -14,15 +16,17 @@ class CustomerAuthForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      ...children,
-      const SizedBox(height: 20),
-      loading
-          ? const CircularProgressIndicator()
-          : ElevatedButton(
-              onPressed: onSubmit,
-              child: const Text('Continue'),
-            ),
-    ]);
+    return Column(
+      children: [
+        ...children,
+        const SizedBox(height: 20),
+        loading
+            ? SpinKitWave(
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              )
+            : PrimaryButton(label: 'Continue', onPressed: onSubmit),
+      ],
+    );
   }
 }
