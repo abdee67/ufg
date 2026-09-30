@@ -18,6 +18,8 @@ import 'package:ufg/features/home/presentation/pages/home_screen.dart';
 import 'package:ufg/features/home/presentation/pages/search_screen.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_application_page.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_status_page.dart';
+import 'package:ufg/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:ufg/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
 import 'package:ufg/features/loans/presentation/pages/guarantor_requests_page.dart';
 import 'package:ufg/features/loans/presentation/pages/loan_application_page.dart';
@@ -122,6 +124,17 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.membershipStatus,
         builder: (_, _) => const MembershipStatusPage(),
+      ),
+
+      // =================== Notifications ===================
+      // Shares the singleton NotificationBloc so the header badge and this page
+      // never hold two different unread counts.
+      GoRoute(
+        path: AppRoutes.notification,
+        builder: (_, _) => BlocProvider.value(
+          value: getit<NotificationBloc>(),
+          child: const NotificationsPage(),
+        ),
       ),
 
       // =================== Savings Feature Routes ===================
