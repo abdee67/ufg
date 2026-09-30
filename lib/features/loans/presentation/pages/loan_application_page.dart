@@ -17,7 +17,6 @@ import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_event.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_state.dart';
 import 'package:ufg/features/loans/presentation/widgets/loan_financial_breakdown.dart';
-import 'package:ufg/features/loans/presentation/widgets/loan_product_card.dart';
 
 class LoanApplicationPage extends StatefulWidget {
   const LoanApplicationPage({super.key});

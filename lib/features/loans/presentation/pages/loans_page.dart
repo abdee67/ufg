@@ -574,7 +574,9 @@ class _LoansDashboardBody extends StatelessWidget {
         border: Border.all(color: theme.dividerColor),
       ),
       child: ListTile(
-        onTap: () => context.push('${AppRoutes.loans}/application/${app.id}'),
+        onTap: () => context.push(
+          AppRoutes.loanApplicationStatus.replaceAll(':id', app.id),
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
