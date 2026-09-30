@@ -16,6 +16,7 @@ import 'package:ufg/features/home/presentation/bloc/home_bloc.dart';
 import 'package:ufg/features/home/presentation/bloc/home_event.dart';
 import 'package:ufg/features/home/presentation/bloc/home_state.dart';
 import 'package:ufg/features/loans/domain/entities/loan_entity.dart';
+import 'package:ufg/features/notifications/presentation/widgets/notification_badge.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -191,7 +192,7 @@ class _StickyHeader extends StatelessWidget {
             ),
             Row(
               children: [
-                _NotificationIcon(colorScheme: colorScheme),
+                const NotificationBadge(),
                 const SizedBox(width: AppSizes.spacingS),
                 IconButton(
                   onPressed: onLogoutTap,
@@ -215,47 +216,6 @@ class _StickyHeader extends StatelessWidget {
     if (hour < 12) return 'morning';
     if (hour < 17) return 'afternoon';
     return 'evening';
-  }
-}
-
-class _NotificationIcon extends StatelessWidget {
-  final ColorScheme colorScheme;
-  const _NotificationIcon({required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            shape: BoxShape.circle,
-            border: Border.all(color: colorScheme.outlineVariant),
-          ),
-          child: IconButton(
-            onPressed: () {},
-            icon: Icon(
-              AppIcons.notifications.outline,
-              color: colorScheme.primary,
-              size: AppSizes.iconM,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 12,
-          right: 12,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: ColorConstants.error,
-              shape: BoxShape.circle,
-              border: Border.all(color: colorScheme.surface, width: 1.5),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
 

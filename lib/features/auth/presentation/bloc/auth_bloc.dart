@@ -18,6 +18,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final ChangePassword changePassword;
   final RequiresPasswordChange requiresPasswordChange;
   final CheckStartupSession checkStartupSession;
+
+  /// Runs before the Supabase session is destroyed, while the JWT is still
+  /// valid (used to deactivate the FCM device registration). Any failure is
+  /// swallowed: notification cleanup must never block sign-out.
+  final Future<void> Function()? onBeforeSignOut;
+
   AuthBloc(
     this.signIn,
     this.signOut,
@@ -27,8 +33,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // this.updateCustomerProfile,
     this.changePassword,
     this.requiresPasswordChange,
-    this.checkStartupSession,
-  ) : super(AuthInitial()) {
+    this.checkStartupSession, {
+    this.onBeforeSignOut,
+  }) : super(AuthInitial()) {
     on<CheckStartupSessionRequested>((event, emit) async {
       emit(AuthLoading());
       final result = await checkStartupSession();
@@ -72,6 +79,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
     on<SignOutRequested>((event, emit) async {
       emit(AuthLoading());
+
+      try {
+        await onBeforeSignOut?.call();
+      } catch (_) {
+        // Never block logout because of notification cleanup.
+      }
+
       final result = await signOut();
       result.fold(
         (failure) => emit(AuthFailure(failure.message)),
