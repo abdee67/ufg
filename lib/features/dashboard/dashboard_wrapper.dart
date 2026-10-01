@@ -10,30 +10,44 @@ class DashboardWrapper extends StatelessWidget {
   const DashboardWrapper({super.key, required this.navigationShell});
 
   static const _items = [
-    BottomNavItemConfig(label: 'Home', icon: AppIcons.home),
-    BottomNavItemConfig(label: 'Savings', icon: AppIcons.savings, route: AppRoutes.savings),
-    BottomNavItemConfig(label: 'Loans', icon: AppIcons.loans, route: AppRoutes.loans),
-
-    BottomNavItemConfig(label: 'Membership', icon: AppIcons.members, route: AppRoutes.membershipStatus),
+    BottomNavItemConfig(
+      label: 'Home',
+      icon: AppIcons.home,
+      route: AppRoutes.homeScreen,
+    ),
+    BottomNavItemConfig(
+      label: 'Loans',
+      icon: AppIcons.loans,
+      route: AppRoutes.loans,
+    ),
+    BottomNavItemConfig(
+      label: 'Savings',
+      icon: AppIcons.add,
+      route: AppRoutes.savings,
+    ),
+    BottomNavItemConfig(
+      label: 'Profile',
+      icon: AppIcons.profile,
+      route: AppRoutes.profile,
+    ),
+    BottomNavItemConfig(
+      label: 'Settings',
+      icon: AppIcons.settings,
+      route: AppRoutes.settings,
+    ),
   ];
 
   void _onTap(BuildContext context, int index) {
-    if (index == 0) {
-      navigationShell.goBranch(
-        index,
-        initialLocation: index == navigationShell.currentIndex,
-      );
-      return;
-    }
-    final route = _items[index].route;
-    if (route != null) {
-      context.push(route);
-    }
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: false,
       body: SizedBox.expand(child: navigationShell),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: navigationShell.currentIndex,
