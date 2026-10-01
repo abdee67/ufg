@@ -30,7 +30,7 @@ class NotificationLocalDisplayService {
     if (defaultTargetPlatform != TargetPlatform.android) return;
 
     const initializationSettings = InitializationSettings(
-      android: AndroidInitializationSettings('assets/images/logo.jpg'),
+      android: AndroidInitializationSettings('assets/icon/icon.png'),
     );
 
     await _plugin.initialize(
@@ -44,7 +44,8 @@ class NotificationLocalDisplayService {
 
     await _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(
           const AndroidNotificationChannel(
             channelId,
@@ -64,8 +65,10 @@ class NotificationLocalDisplayService {
   Future<bool> requestPermission() async {
     if (defaultTargetPlatform != TargetPlatform.android) return true;
 
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     final granted = await android?.requestNotificationsPermission();
     return granted ?? true;
   }

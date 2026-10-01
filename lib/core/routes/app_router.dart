@@ -37,6 +37,8 @@ import 'package:ufg/features/savings/presentation/pages/savings_page.dart';
 import 'package:ufg/features/savings/presentation/pages/savings_payment_page.dart';
 import 'package:ufg/features/savings/presentation/pages/withdrawal_history_page.dart';
 import 'package:ufg/features/savings/presentation/pages/withdrawal_page.dart';
+import 'package:ufg/features/profile/presentation/pages/profile_page.dart';
+import 'package:ufg/features/settings/presentation/pages/settings_page.dart';
 import 'package:ufg/injection_container.dart';
 
 class AppRouter {
@@ -96,6 +98,7 @@ class AppRouter {
           return DashboardWrapper(navigationShell: navigationShell);
         },
         branches: [
+          // Branch 0: Home
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -104,6 +107,48 @@ class AppRouter {
                   create: (_) => getit<HomeBloc>(),
                   child: const HomeScreen(),
                 ),
+              ),
+            ],
+          ),
+          // Branch 1: Loans
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.loans,
+                builder: (_, _) => BlocProvider(
+                  create: (_) => getit<LoanBloc>(),
+                  child: const LoansPage(),
+                ),
+              ),
+            ],
+          ),
+          // Branch 2: Savings (Center item)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.savings,
+                builder: (_, _) => BlocProvider(
+                  create: (_) => getit<SavingsBloc>(),
+                  child: const SavingsPage(),
+                ),
+              ),
+            ],
+          ),
+          // Branch 3: Profile (Changed from membership to profile)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (_, _) => const ProfilePage(),
+              ),
+            ],
+          ),
+          // Branch 4: Settings (Added at the end)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                builder: (_, _) => const SettingsPage(),
               ),
             ],
           ),
@@ -138,13 +183,6 @@ class AppRouter {
       ),
 
       // =================== Savings Feature Routes ===================
-      GoRoute(
-        path: AppRoutes.savings,
-        builder: (_, _) => BlocProvider(
-          create: (_) => getit<SavingsBloc>(),
-          child: const SavingsPage(),
-        ),
-      ),
       GoRoute(
         path: AppRoutes.savingsObligations,
         builder: (_, _) => BlocProvider(
@@ -186,13 +224,6 @@ class AppRouter {
       ),
 
       // =================== Loan Feature Routes ===================
-      GoRoute(
-        path: AppRoutes.loans,
-        builder: (_, _) => BlocProvider(
-          create: (_) => getit<LoanBloc>(),
-          child: const LoansPage(),
-        ),
-      ),
       GoRoute(
         path: AppRoutes.loanApply,
         builder: (_, _) => BlocProvider(
