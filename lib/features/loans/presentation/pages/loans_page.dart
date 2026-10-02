@@ -6,6 +6,7 @@ import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
+import 'package:ufg/core/widgets/app_card.dart';
 import 'package:ufg/core/widgets/custom_app_bar.dart';
 import 'package:ufg/core/widgets/error_state.dart';
 import 'package:ufg/core/widgets/loading_indicator.dart';
@@ -167,10 +168,6 @@ class _LoansDashboardBody extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(AppSizes.screenPadding),
         children: [
-          if (pendingGuarantors.isNotEmpty) ...[
-            _buildGuarantorBanner(context, pendingGuarantors.length),
-            const SizedBox(height: AppSizes.spacingM),
-          ],
           if (activeLoan != null) ...[
             LoanSummaryCard(
               loan: activeLoan,
@@ -284,40 +281,6 @@ class _LoansDashboardBody extends StatelessWidget {
       context.push('${AppRoutes.loans}/apply');
     }
   }
-
-  Widget _buildGuarantorBanner(BuildContext context, int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: ColorConstants.warning.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(
-          color: ColorConstants.warning.withValues(alpha: 0.35),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            AppIcons.warning.outline,
-            color: ColorConstants.warning,
-            size: AppSizes.iconM,
-          ),
-          const SizedBox(width: AppSizes.spacingS),
-          Expanded(
-            child: Text(
-              'You have $count pending guarantee request(s) awaiting your decision.',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-            ),
-          ),
-          TextButton(
-            onPressed: () => context.push('${AppRoutes.loans}/guarantors'),
-            child: const Text('Review'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildNoActiveLoanBanner(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -566,13 +529,9 @@ class _LoansDashboardBody extends StatelessWidget {
   ) {
     final theme = Theme.of(context);
 
-    return Container(
+    return AppCard(
       margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: theme.dividerColor),
-      ),
+      padding: 0,
       child: ListTile(
         onTap: () => context.push(
           AppRoutes.loanApplicationStatus.replaceAll(':id', app.id),
