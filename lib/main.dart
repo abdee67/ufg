@@ -5,12 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_routes.dart';
 import 'package:ufg/core/notifications/fcm_notification_service.dart';
 import 'package:ufg/core/notifications/notification_navigation_service.dart';
@@ -54,39 +52,59 @@ void main() async {
   // Check and enforce 1-hour session expiry on cold start before app mounts
   await SessionExpiryPolicy.checkAndEnforceExpiry();
 
+  // Restore persisted theme preference (dark mode) before rendering
+  await getit<AppStateNotifier>().loadSavedTheme();
+
+  // Check onboarding status before rendering so theme and routes mount immediately
+  bool showOnboarding = true;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+    showOnboarding = !hasSeenOnboarding;
+  } catch (e) {
+    showOnboarding = true;
+  }
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => getit<AppStateNotifier>(),
-      child: const UFG(),
+    MultiProvider(
+      providers: [
+        BlocProvider(create: (context) => getit<AuthBloc>()),
+        BlocProvider(create: (context) => getit<MembershipBloc>()),
+        BlocProvider(create: (context) => getit<SavingsBloc>()),
+        BlocProvider(create: (context) => getit<LoanBloc>()),
+        BlocProvider(create: (context) => getit<NotificationBloc>()),
+        ChangeNotifierProvider.value(value: getit<AppStateNotifier>()),
+      ],
+      child: UFG(showOnboarding: showOnboarding),
     ),
   );
 }
 
 class UFG extends StatefulWidget {
-  const UFG({super.key});
+  final bool showOnboarding;
+  const UFG({super.key, required this.showOnboarding});
+
   @override
   State<UFG> createState() => _UFGState();
 }
 
 class _UFGState extends State<UFG> with WidgetsBindingObserver {
-  bool showOnboarding = true;
-  bool isLoading = true;
-  late GoRouter _router;
-  bool _routerReady = false;
+  late final GoRouter _router;
   StreamSubscription<AuthState>? _authSub;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _router = AppRouter(showOnboarding: widget.showOnboarding).router;
+    NotificationNavigationService.instance.attachRouter(_router);
     _listenForForcedLogout();
-    _checkOnboardingStatus();
   }
 
   void _listenForForcedLogout() {
     _authSub = Supabase.instance.client.auth.onAuthStateChange.listen(
       (data) {
-        if (data.event == AuthChangeEvent.signedOut && _routerReady) {
+        if (data.event == AuthChangeEvent.signedOut) {
           _router.go(AppRoutes.loginScreen);
         }
         _syncNotificationSession(data.event);
@@ -142,32 +160,9 @@ class _UFGState extends State<UFG> with WidgetsBindingObserver {
 
   Future<void> _enforceSessionExpiry() async {
     final hadExpired = await SessionExpiryPolicy.checkAndEnforceExpiry();
-    if (hadExpired && _routerReady) {
+    if (hadExpired) {
       _router.go(AppRoutes.loginScreen);
     }
-  }
-
-  Future<void> _checkOnboardingStatus() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
-      setState(() {
-        showOnboarding = !hasSeenOnboarding;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        showOnboarding = true;
-        isLoading = false;
-      });
-    }
-
-    _router = AppRouter(showOnboarding: showOnboarding).router;
-    _routerReady = true;
-
-    // A cold-start notification tap is buffered by the navigation service until
-    // the router exists, so attach immediately after creation.
-    NotificationNavigationService.instance.attachRouter(_router);
   }
 
   @override
@@ -177,41 +172,20 @@ class _UFGState extends State<UFG> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  Widget loadingScreen() {
-    return Scaffold(
-      body: Center(child: SpinKitWave(color: ColorConstants.accent, size: 50)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return MaterialApp(
-        home: Scaffold(body: Center(child: loadingScreen())),
-      );
-    }
-    return MultiProvider(
-      providers: [
-        BlocProvider(create: (context) => getit<AuthBloc>()),
-        BlocProvider(create: (context) => getit<MembershipBloc>()),
-        BlocProvider(create: (context) => getit<SavingsBloc>()),
-        BlocProvider(create: (context) => getit<LoanBloc>()),
-        BlocProvider(create: (context) => getit<NotificationBloc>()),
-        ChangeNotifierProvider(create: (context) => getit<AppStateNotifier>()),
-      ],
-      child: Consumer<AppStateNotifier>(
-        builder: (context, appState, child) {
-          return MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'Unity Finance Group',
-            routerConfig: _router,
-            scaffoldMessengerKey: rootScaffoldMessengerKey,
-            theme: ThemeConfig.lightTheme,
-            darkTheme: ThemeConfig.darkTheme,
-            themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          );
-        },
-      ),
+    return Consumer<AppStateNotifier>(
+      builder: (context, appState, child) {
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'Unity Finance Group',
+          routerConfig: _router,
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
+          theme: ThemeConfig.lightTheme,
+          darkTheme: ThemeConfig.darkTheme,
+          themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        );
+      },
     );
   }
 }
