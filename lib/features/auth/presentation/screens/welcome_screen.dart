@@ -107,13 +107,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         tag: 'app-logo',
                         child:
                             Container(
-                                  padding: const EdgeInsets.all(5),
-
-                                  child: Image.asset(
-                                    AllImages().logo,
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    image: DecorationImage(
+                                      image: AssetImage(AllImages.logo),
+                                      fit: BoxFit.contain,
+                                    ),
                                   ),
                                 )
                                 .animate()

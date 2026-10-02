@@ -97,10 +97,7 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
             if (state is AuthSuccess) {
               // Auth confirmed → ask MembershipBloc for the routing decision
               //cool refresh indicator
-              final spinkit = SpinKitWave(
-                color: colorScheme.primary,
-                size: 50,
-              );
+              final spinkit = SpinKitWave(color: colorScheme.primary, size: 50);
               setState(() {
                 _spinkit = spinkit;
               });
@@ -152,14 +149,22 @@ class _SessionCheckingSplashState extends State<SessionCheckingSplash> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(AllImages().logo, height: 110),
+                  Hero(
+                    tag: 'app-logo',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage(AllImages.logo),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   if (!_hasError) ...[
                     _spinkit ??
-                        SpinKitWave(
-                          color: colorScheme.primary,
-                          size: 50,
-                        ),
+                        SpinKitWave(color: colorScheme.primary, size: 50),
                     const SizedBox(height: 20),
                     Text(
                       _statusMessage,

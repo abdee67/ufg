@@ -20,12 +20,18 @@ class AuthBackdrop extends StatelessWidget {
               Positioned(
                 top: -110,
                 right: -100,
-                child: _circle(colorScheme.primary.withValues(alpha: 0.08), 285),
+                child: _circle(
+                  colorScheme.primary.withValues(alpha: 0.08),
+                  285,
+                ),
               ),
               Positioned(
                 bottom: -135,
                 left: -90,
-                child: _circle(ColorConstants.navyBlue.withValues(alpha: 0.06), 265),
+                child: _circle(
+                  ColorConstants.navyBlue.withValues(alpha: 0.06),
+                  265,
+                ),
               ),
             ],
           ),
@@ -36,10 +42,10 @@ class AuthBackdrop extends StatelessWidget {
   }
 
   Widget _circle(Color color, double size) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      );
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
 }
 
 class AuthLogoLockup extends StatelessWidget {
@@ -54,13 +60,15 @@ class AuthLogoLockup extends StatelessWidget {
         Container(
           width: 48,
           height: 48,
-          padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
             color: theme.cardColor,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: theme.dividerColor),
+            shape: BoxShape.circle,
+            image: DecorationImage(
+              image: AssetImage(AllImages.logo),
+              fit: BoxFit.contain,
+            ),
+            // border: Border.all(color: theme.dividerColor),
           ),
-          child: Image.asset(AllImages().logo),
         ),
         const SizedBox(width: AppSizes.spacingS),
         Text(
@@ -119,7 +127,11 @@ class AuthHeadline extends StatelessWidget {
 }
 
 class AuthLinkButton extends StatelessWidget {
-  const AuthLinkButton({super.key, required this.label, required this.onPressed});
+  const AuthLinkButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
 
   final String label;
   final VoidCallback onPressed;
