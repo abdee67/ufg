@@ -63,6 +63,20 @@ import 'package:ufg/features/home/data/repositories/home_repository_impl.dart';
 import 'package:ufg/features/home/domain/repositories/home_repository.dart';
 import 'package:ufg/features/home/domain/usecases/search_content.dart';
 
+import 'package:ufg/core/notifications/fcm_notification_service.dart';
+import 'package:ufg/core/notifications/notification_local_display_service.dart';
+import 'package:ufg/core/notifications/notification_navigation_service.dart';
+import 'package:ufg/features/notifications/data/datasources/notification_remote_data_source.dart';
+import 'package:ufg/features/notifications/data/repositories/notification_repository_impl.dart';
+import 'package:ufg/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:ufg/features/notifications/domain/usecases/deactivate_notification_device.dart';
+import 'package:ufg/features/notifications/domain/usecases/get_notifications.dart';
+import 'package:ufg/features/notifications/domain/usecases/get_unread_notification_count.dart';
+import 'package:ufg/features/notifications/domain/usecases/mark_all_notifications_read.dart';
+import 'package:ufg/features/notifications/domain/usecases/mark_notification_read.dart';
+import 'package:ufg/features/notifications/domain/usecases/register_notification_device.dart';
+import 'package:ufg/features/notifications/presentation/bloc/notification_bloc.dart';
+
 final getit = GetIt.instance;
 
 void initDependency() {
@@ -85,7 +99,16 @@ void initDependency() {
 
   // Auth bloc
   getit.registerFactory(
-    () => AuthBloc(getit(), getit(), getit(), getit(), getit(), getit()),
+    () => AuthBloc(
+      getit(),
+      getit(),
+      getit(),
+      getit(),
+      getit(),
+      getit(),
+      onBeforeSignOut: () =>
+          getit<FcmNotificationService>().deactivateCurrentDevice(),
+    ),
   );
 
   //================== injecting membership ===================
@@ -215,4 +238,43 @@ void initDependency() {
     () => HomeRepositoryImpl(remoteDataSource: getit()),
   );
   getit.registerLazySingleton(() => SearchContent(getit()));
+
+  //================== injecting notifications ===================
+  getit.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(),
+  );
+  getit.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(remoteDataSource: getit()),
+  );
+
+  // Notification use cases
+  getit.registerLazySingleton(() => GetNotifications(getit()));
+  getit.registerLazySingleton(() => GetUnreadNotificationCount(getit()));
+  getit.registerLazySingleton(() => MarkNotificationRead(getit()));
+  getit.registerLazySingleton(() => MarkAllNotificationsRead(getit()));
+  getit.registerLazySingleton(() => RegisterNotificationDevice(getit()));
+  getit.registerLazySingleton(() => DeactivateNotificationDevice(getit()));
+
+  // Notification platform services
+  getit.registerLazySingleton(() => NotificationLocalDisplayService());
+  getit.registerLazySingleton(() => NotificationNavigationService.instance);
+  getit.registerLazySingleton(
+    () => FcmNotificationService(
+      registerNotificationDevice: getit(),
+      deactivateNotificationDevice: getit(),
+      localDisplay: getit(),
+      navigation: getit(),
+    ),
+  );
+
+  // Shared instance on purpose: the home badge and the inbox page must share
+  // one Realtime subscription and one authoritative unread count.
+  getit.registerLazySingleton(
+    () => NotificationBloc(
+      getNotifications: getit(),
+      getUnreadNotificationCount: getit(),
+      markNotificationRead: getit(),
+      markAllNotificationsRead: getit(),
+    ),
+  );
 }

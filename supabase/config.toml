@@ -390,6 +390,14 @@ port = 54327
 # Configure one of the supported backends: `postgres`, `bigquery`.
 backend = "postgres"
 
+# Function-specific configuration.
+# notification-push-worker is invoked by pg_cron/pg_net with a dedicated named
+# secret key in the "apikey" header and authenticates the caller itself through
+# the @supabase/server wrapper (auth: 'secret:notification_worker'), so the
+# platform-level JWT verification must be disabled for this function only.
+[functions.notification-push-worker]
+verify_jwt = false
+
 # Experimental features may be deprecated any time
 [experimental]
 # Configures Postgres storage engine to use OrioleDB (S3)

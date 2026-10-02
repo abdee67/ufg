@@ -1,0 +1,90 @@
+name: Android Firebase Distribution
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  distribute:
+    name: Build and distribute APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Run Flutter tests
+        run: flutter test
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install Fastlane dependencies
+        working-directory: android
+        run: bundle install
+
+      - name: Prepare Android signing
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/android-release-key.jks"
+
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=$RUNNER_TEMP/android-release-key.jks
+          EOF
+
+      - name: Prepare Firebase credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 --decode \
+            > "$RUNNER_TEMP/firebase-service-account.json"
+
+      - name: Distribute APK
+        working-directory: android
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_TESTER_GROUP: ${{ secrets.FIREBASE_TESTER_GROUP }}
+          RELEASE_NOTES: "Automated build from GitHub Actions: ${{ github.sha }}"
+        run: bundle exec fastlane beta
+
+      - name: Cleanup credentials
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/firebase-service-account.json"
+          rm -f "$RUNNER_TEMP/android-release-key.jks"
+          rm -f android/key.properties

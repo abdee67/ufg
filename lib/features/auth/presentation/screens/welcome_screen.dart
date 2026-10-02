@@ -24,19 +24,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       title: 'Smart Savings',
-      description: 'Build your financial future\nwith structured monthly savings',
+      description:
+          'Build your financial future\nwith structured monthly savings',
       image: 'assets/images/onboarding1.png',
       color: ColorConstants.brandGreen,
     ),
     OnboardingPage(
       title: 'Flexible Lending',
-      description: 'Access member loans with\ncompetitive rates when you need it',
+      description:
+          'Access member loans with\ncompetitive rates when you need it',
       image: 'assets/images/onboarding2.png',
       color: ColorConstants.navyBlue,
     ),
     OnboardingPage(
       title: 'Community Growth',
-      description: 'Join a trusted network of\nmembers growing together financially',
+      description:
+          'Join a trusted network of\nmembers growing together financially',
       image: 'assets/images/onboarding3.png',
       color: ColorConstants.brandGreen,
     ),
@@ -102,29 +105,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     children: [
                       Hero(
                         tag: 'app-logo',
-                        child: Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: theme.primaryColor,
-                              width: 2,
-                            ),
-                          ),
-                          child: Image.asset(
-                            AllImages().logo,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                            .animate()
-                            .scale(delay: 300.ms)
-                            .move(
-                              duration: 300.ms,
-                              curve: Curves.easeInOut,
-                              begin: const Offset(0, 30),
-                            ),
+                        child:
+                            Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    image: DecorationImage(
+                                      image: AssetImage(AllImages.logo),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                )
+                                .animate()
+                                .scale(delay: 300.ms)
+                                .move(
+                                  duration: 300.ms,
+                                  curve: Curves.easeInOut,
+                                  begin: const Offset(0, 30),
+                                ),
                       ),
                       if (_currentPage < _pages.length - 1)
                         TextButton(
@@ -223,40 +220,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildImageWidget(String assetPath, Color color) {
     return Container(
-      margin: const EdgeInsets.all(AppSizes.spacingM),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.2),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
+          margin: const EdgeInsets.all(AppSizes.spacingM),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.2),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
-        child: Image.asset(
-          assetPath,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: double.infinity,
-              height: 300,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
-              ),
-              child: Icon(
-                AppIcons.image.outline,
-                size: 64,
-                color: color,
-              ),
-            );
-          },
-        ),
-      ),
-    )
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
+            child: Image.asset(
+              assetPath,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: double.infinity,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusSheet),
+                  ),
+                  child: Icon(AppIcons.image.outline, size: 64, color: color),
+                );
+              },
+            ),
+          ),
+        )
         .animate()
         .fadeIn(duration: 600.ms)
         .scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack)

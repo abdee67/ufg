@@ -39,12 +39,14 @@ class _SavingsHistoryPageState extends State<SavingsHistoryPage> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Savings History'),
-        leading: IconButton(
-          icon: Icon(AppIcons.back.outline, size: AppSizes.iconM),
-          tooltip: 'Back',
-          onPressed: () => context.pop(),
-        ),
+        title: const Text('Transactions'),
+        leading: context.canPop()
+            ? IconButton(
+                icon: Icon(AppIcons.back.outline, size: AppSizes.iconM),
+                tooltip: 'Back',
+                onPressed: () => context.pop(),
+              )
+            : null,
       ),
       body: RefreshIndicator(
         onRefresh: () async => _loadHistory(),

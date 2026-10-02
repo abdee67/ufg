@@ -1,7 +1,7 @@
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_icons.dart';
-import 'package:ufg/core/constants/app_sizes.dart';
 
 class BottomNavItemConfig {
   const BottomNavItemConfig({
@@ -30,84 +30,64 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Contrasting inverse coloring:
+    // In Dark Mode: bar is crisp white with dark icons.
+    // In Light Mode: bar is deep dark with white icons.
+    final barColor = isDark
+        ? ColorConstants.dividerLight
+        : ColorConstants.surfaceDark;
+    final activeCircleColor = ColorConstants.brandGreen;
+    final cutoutBgColor = theme.scaffoldBackgroundColor;
+    final inactiveColor = isDark
+        ? ColorConstants.navyBlue.withValues(alpha: 0.85)
+        : Colors.white.withValues(alpha: 0.85);
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(color: theme.dividerColor),
-        ),
+        color: cutoutBgColor,
+        boxShadow: [
+          BoxShadow(
+            color: (isDark ? Colors.black : ColorConstants.navyBlue).withValues(
+              alpha: 0.08,
+            ),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
-        child: SizedBox(
-          height: AppSizes.navBarHeight,
-          child: Row(
-            children: [
-              for (var i = 0; i < items.length; i++)
-                Expanded(child: _NavItem(item: items[i], index: i, isSelected: currentIndex == i, onTap: onTap)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+        top: false,
+        child: CurvedNavigationBar(
+          index: currentIndex.clamp(0, items.length - 1),
+          height: 65.0,
+          items: List.generate(items.length, (index) {
+            final item = items[index];
+            final isSelected = currentIndex == index;
+            final isCenter = index == 2;
 
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.item,
-    required this.index,
-    required this.isSelected,
-    required this.onTap,
-  });
+            final iconData = isSelected ? item.icon.bold : item.icon.outline;
+            final iconColor = isSelected ? Colors.white : inactiveColor;
+            final iconSize = isCenter ? 28.0 : 25.0;
 
-  final BottomNavItemConfig item;
-  final int index;
-  final bool isSelected;
-  final ValueChanged<int> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final activeColor = theme.colorScheme.primary;
-    final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.55);
-
-    return Semantics(
-      label: item.label,
-      selected: isSelected,
-      button: true,
-      child: InkWell(
-        onTap: () => onTap(index),
-        child: SizedBox(
-          height: double.infinity,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isSelected ? item.icon.bold : item.icon.outline,
-                size: AppSizes.iconM,
-                color: isSelected ? activeColor : inactiveColor,
+            return Tooltip(
+              key: ValueKey('nav_item_$index'),
+              message: item.label,
+              child: Semantics(
+                label: item.label,
+                selected: isSelected,
+                button: true,
+                child: Icon(iconData, size: iconSize, color: iconColor),
               ),
-              const SizedBox(height: AppSizes.spacingXxs),
-              Text(
-                item.label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: isSelected ? activeColor : inactiveColor,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-              if (isSelected)
-                Container(
-                  margin: const EdgeInsets.only(top: AppSizes.spacingXxs),
-                  width: 24,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: ColorConstants.brandGreen,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-            ],
-          ),
+            );
+          }),
+          color: barColor,
+          buttonBackgroundColor: activeCircleColor,
+          backgroundColor: cutoutBgColor,
+          animationCurve: Curves.easeInOutCubic,
+          animationDuration: const Duration(milliseconds: 320),
+          onTap: onTap,
         ),
       ),
     );

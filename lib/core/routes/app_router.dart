@@ -18,6 +18,8 @@ import 'package:ufg/features/home/presentation/pages/home_screen.dart';
 import 'package:ufg/features/home/presentation/pages/search_screen.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_application_page.dart';
 import 'package:ufg/features/membership/presentation/pages/membership_status_page.dart';
+import 'package:ufg/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:ufg/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
 import 'package:ufg/features/loans/presentation/pages/guarantor_requests_page.dart';
 import 'package:ufg/features/loans/presentation/pages/loan_application_page.dart';
@@ -35,6 +37,8 @@ import 'package:ufg/features/savings/presentation/pages/savings_page.dart';
 import 'package:ufg/features/savings/presentation/pages/savings_payment_page.dart';
 import 'package:ufg/features/savings/presentation/pages/withdrawal_history_page.dart';
 import 'package:ufg/features/savings/presentation/pages/withdrawal_page.dart';
+import 'package:ufg/features/profile/presentation/pages/profile_page.dart';
+import 'package:ufg/features/settings/presentation/pages/settings_page.dart';
 import 'package:ufg/injection_container.dart';
 
 class AppRouter {
@@ -94,6 +98,7 @@ class AppRouter {
           return DashboardWrapper(navigationShell: navigationShell);
         },
         branches: [
+          // Branch 0: Home
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -102,6 +107,51 @@ class AppRouter {
                   create: (_) => getit<HomeBloc>(),
                   child: const HomeScreen(),
                 ),
+              ),
+            ],
+          ),
+          // Branch 1: Loans
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.loans,
+                builder: (_, _) => BlocProvider(
+                  create: (_) => getit<LoanBloc>(),
+                  child: const LoansPage(),
+                ),
+              ),
+            ],
+          ),
+          // Branch 2: Savings (Center item)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.savings,
+                builder: (_, _) => BlocProvider(
+                  create: (_) => getit<SavingsBloc>(),
+                  child: const SavingsPage(),
+                ),
+              ),
+            ],
+          ),
+          // Branch 3: Transactions
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.savingsHistory,
+                builder: (_, _) => BlocProvider(
+                  create: (_) => getit<SavingsBloc>(),
+                  child: const SavingsHistoryPage(),
+                ),
+              ),
+            ],
+          ),
+          // Branch 4: Settings (Added at the end)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                builder: (_, _) => const SettingsPage(),
               ),
             ],
           ),
@@ -124,14 +174,18 @@ class AppRouter {
         builder: (_, _) => const MembershipStatusPage(),
       ),
 
-      // =================== Savings Feature Routes ===================
+      // =================== Notifications ===================
+      // Shares the singleton NotificationBloc so the header badge and this page
+      // never hold two different unread counts.
       GoRoute(
-        path: AppRoutes.savings,
-        builder: (_, _) => BlocProvider(
-          create: (_) => getit<SavingsBloc>(),
-          child: const SavingsPage(),
+        path: AppRoutes.notification,
+        builder: (_, _) => BlocProvider.value(
+          value: getit<NotificationBloc>(),
+          child: const NotificationsPage(),
         ),
       ),
+
+      // =================== Savings Feature Routes ===================
       GoRoute(
         path: AppRoutes.savingsObligations,
         builder: (_, _) => BlocProvider(
@@ -140,11 +194,8 @@ class AppRouter {
         ),
       ),
       GoRoute(
-        path: AppRoutes.savingsHistory,
-        builder: (_, _) => BlocProvider(
-          create: (_) => getit<SavingsBloc>(),
-          child: const SavingsHistoryPage(),
-        ),
+        path: AppRoutes.profile,
+        builder: (_, _) => const ProfilePage(),
       ),
       GoRoute(
         path: AppRoutes.savingsWithdraw,
@@ -173,13 +224,6 @@ class AppRouter {
       ),
 
       // =================== Loan Feature Routes ===================
-      GoRoute(
-        path: AppRoutes.loans,
-        builder: (_, _) => BlocProvider(
-          create: (_) => getit<LoanBloc>(),
-          child: const LoansPage(),
-        ),
-      ),
       GoRoute(
         path: AppRoutes.loanApply,
         builder: (_, _) => BlocProvider(

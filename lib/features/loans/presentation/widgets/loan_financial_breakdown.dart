@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ufg/core/constants/app_colors.dart';
 import 'package:ufg/core/constants/app_icons.dart';
 import 'package:ufg/core/constants/app_sizes.dart';
 
@@ -35,11 +34,7 @@ class LoanFinancialBreakdown extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacingL),
-      decoration: BoxDecoration(
-        color: isDark ? ColorConstants.surfaceDark : colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: theme.dividerColor),
-      ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

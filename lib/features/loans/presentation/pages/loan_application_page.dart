@@ -17,7 +17,6 @@ import 'package:ufg/features/loans/presentation/bloc/loan_bloc.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_event.dart';
 import 'package:ufg/features/loans/presentation/bloc/loan_state.dart';
 import 'package:ufg/features/loans/presentation/widgets/loan_financial_breakdown.dart';
-import 'package:ufg/features/loans/presentation/widgets/loan_product_card.dart';
 
 class LoanApplicationPage extends StatefulWidget {
   const LoanApplicationPage({super.key});
@@ -65,7 +64,9 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
     if (_memberLoanLimit == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Checking your loan eligibility. Please try again shortly.'),
+          content: Text(
+            'Checking your loan eligibility. Please try again shortly.',
+          ),
         ),
       );
       return;
@@ -228,7 +229,10 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
           }
 
           if (_memberLoanLimit?.hasPendingApplication == true) {
-            return _buildPendingApplicationBlockedView(context, _memberLoanLimit!);
+            return _buildPendingApplicationBlockedView(
+              context,
+              _memberLoanLimit!,
+            );
           }
 
           final isSubmitting = state is LoanActionInProgress;
@@ -249,49 +253,13 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '1. Select Loan Product',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.spacingS),
-                  if (_products.isEmpty)
-                    const Center(child: LoadingIndicator())
-                  else
-                    ..._products
-                        .where((product) => product.isMemberLoan)
-                        .map(
-                          (product) => Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: AppSizes.spacingS,
-                            ),
-                            child: LoanProductCard(
-                              product: product,
-                              isSelected: _selectedProduct?.id == product.id,
-                              onTap: () {
-                                setState(() {
-                                  _selectedProduct = product;
-                                  if (_requestedAmount > product.maxAmount) {
-                                    _requestedAmount = product.maxAmount;
-                                    _amountController.text = product.maxAmount
-                                        .toStringAsFixed(0);
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-
-                  const SizedBox(height: AppSizes.spacingL),
-
                   if (_memberLoanLimit != null)
                     _MemberLoanLimitCard(limit: _memberLoanLimit!),
                   if (_memberLoanLimit != null)
                     const SizedBox(height: AppSizes.spacingL),
 
                   Text(
-                    '2. Requested Amount',
+                    '1. Requested Amount',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -502,7 +470,9 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
               Text(
                 'You already have an outstanding active loan. According to SACCO lending policy, members must complete full repayment of their existing loan before applying for a new one.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.8,
+                  ),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -514,7 +484,10 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
                     onPressed: () => context.push(
                       '${AppRoutes.loans}/repay/${limit.activeLoanId}',
                     ),
-                    icon: Icon(AppIcons.moneySend.outline, size: AppSizes.iconS),
+                    icon: Icon(
+                      AppIcons.moneySend.outline,
+                      size: AppSizes.iconS,
+                    ),
                     label: const Text('Make a Loan Repayment'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
@@ -588,7 +561,9 @@ class _LoanApplicationPageState extends State<LoanApplicationPage> {
               Text(
                 'You already have a loan application currently under review. Multiple simultaneous applications are not allowed. Please await the decision on your pending request.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.8,
+                  ),
                 ),
                 textAlign: TextAlign.center,
               ),
