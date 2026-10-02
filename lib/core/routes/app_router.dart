@@ -134,12 +134,15 @@ class AppRouter {
               ),
             ],
           ),
-          // Branch 3: Profile (Changed from membership to profile)
+          // Branch 3: Transactions
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.profile,
-                builder: (_, _) => const ProfilePage(),
+                path: AppRoutes.savingsHistory,
+                builder: (_, _) => BlocProvider(
+                  create: (_) => getit<SavingsBloc>(),
+                  child: const SavingsHistoryPage(),
+                ),
               ),
             ],
           ),
@@ -191,11 +194,8 @@ class AppRouter {
         ),
       ),
       GoRoute(
-        path: AppRoutes.savingsHistory,
-        builder: (_, _) => BlocProvider(
-          create: (_) => getit<SavingsBloc>(),
-          child: const SavingsHistoryPage(),
-        ),
+        path: AppRoutes.profile,
+        builder: (_, _) => const ProfilePage(),
       ),
       GoRoute(
         path: AppRoutes.savingsWithdraw,

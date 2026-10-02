@@ -32,20 +32,26 @@ class CustomBottomNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final barColor = isDark ? ColorConstants.surfaceDark : Colors.white;
+    // Contrasting inverse coloring:
+    // In Dark Mode: bar is crisp white with dark icons.
+    // In Light Mode: bar is deep dark with white icons.
+    final barColor = isDark
+        ? ColorConstants.dividerLight
+        : ColorConstants.surfaceDark;
     final activeCircleColor = ColorConstants.brandGreen;
     final cutoutBgColor = theme.scaffoldBackgroundColor;
     final inactiveColor = isDark
-        ? Colors.white.withValues(alpha: 0.65)
-        : ColorConstants.navyBlue.withValues(alpha: 0.65);
+        ? ColorConstants.navyBlue.withValues(alpha: 0.85)
+        : Colors.white.withValues(alpha: 0.85);
 
     return Container(
       decoration: BoxDecoration(
         color: cutoutBgColor,
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : ColorConstants.navyBlue)
-                .withValues(alpha: 0.08),
+            color: (isDark ? Colors.black : ColorConstants.navyBlue).withValues(
+              alpha: 0.08,
+            ),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -72,11 +78,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 label: item.label,
                 selected: isSelected,
                 button: true,
-                child: Icon(
-                  iconData,
-                  size: iconSize,
-                  color: iconColor,
-                ),
+                child: Icon(iconData, size: iconSize, color: iconColor),
               ),
             );
           }),

@@ -26,9 +26,9 @@ class DashboardWrapper extends StatelessWidget {
       route: AppRoutes.savings,
     ),
     BottomNavItemConfig(
-      label: 'Profile',
-      icon: AppIcons.profile,
-      route: AppRoutes.profile,
+      label: 'Transactions',
+      icon: AppIcons.receiptItem,
+      route: AppRoutes.savingsHistory,
     ),
     BottomNavItemConfig(
       label: 'Settings',
