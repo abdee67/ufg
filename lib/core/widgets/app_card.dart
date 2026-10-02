@@ -20,23 +20,25 @@ class AppCard extends StatelessWidget {
     final theme = Theme.of(context);
     final radius = BorderRadius.circular(AppSizes.radiusCard);
 
-    final container = Container(
-      margin: margin,
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
+    // Use Material with the actual card color so child ListTiles / InkWells
+    // have an opaque Material ancestor for visible ink splashes.
+    Widget content = Padding(padding: EdgeInsets.all(padding), child: child);
+
+    if (onTap != null) {
+      content = InkWell(onTap: onTap, borderRadius: radius, child: content);
+    }
+
+    return Padding(
+      padding: margin,
+      child: Material(
         color: theme.cardColor,
-        borderRadius: radius,
-        border: Border.all(color: theme.dividerColor),
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(color: theme.dividerColor),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: content,
       ),
-      child: child,
-    );
-
-    if (onTap == null) return container;
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: radius,
-      child: InkWell(onTap: onTap, borderRadius: radius, child: container),
     );
   }
 }
