@@ -27,12 +27,9 @@ jobs:
           cache: gradle
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          accept-android-sdk-licenses: true
-          packages: |
-            platform-tools
-            ndk;30.0.16138531
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "ndk;30.0.16138531"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
