@@ -50,6 +50,9 @@ jobs:
           FIREBASE_TESTER_GROUP=${{ secrets.FIREBASE_TESTER_GROUP }}
           EOF
 
+      - name: Decode google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > android/app/google-services.json
+
       - name: Get Flutter dependencies
         run: flutter pub get
 
