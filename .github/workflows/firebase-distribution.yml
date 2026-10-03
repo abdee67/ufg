@@ -41,6 +41,15 @@ jobs:
       - name: Flutter doctor
         run: flutter doctor -v
 
+      - name: Create .env file
+        run: |
+          cat > assets/env/.env <<EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_TESTER_GROUP=${{ secrets.FIREBASE_TESTER_GROUP }}
+          EOF
+
       - name: Get Flutter dependencies
         run: flutter pub get
 
