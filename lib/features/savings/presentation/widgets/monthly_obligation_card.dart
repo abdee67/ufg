@@ -8,7 +8,7 @@ import 'package:ufg/features/savings/domain/entities/savings_obligation_entity.d
 import 'package:ufg/features/savings/presentation/widgets/savings_status_chip.dart';
 
 class MonthlyObligationCard extends StatelessWidget {
-  final SavingsObligationEntity obligation;
+final SavingsObligationEntity obligation;
   final VoidCallback onPayTap;
 
   const MonthlyObligationCard({

@@ -28,7 +28,7 @@ import 'core/messaging/root_scaffold_messenger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: "assets/env/.env");
+  await dotenv.load(fileName: "assets/env/.env.local");
   await SupabaseConfig.init();
   initDependency(); // initializing getit for dependency injection
 
@@ -57,13 +57,13 @@ void main() async {
 
   // Check onboarding status before rendering so theme and routes mount immediately
   bool showOnboarding = true;
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
-    showOnboarding = !hasSeenOnboarding;
-  } catch (e) {
-    showOnboarding = true;
-  }
+  // try {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+  //   showOnboarding = !hasSeenOnboarding;
+  // } catch (e) {
+  //   showOnboarding = true;
+  // }
 
   runApp(
     MultiProvider(
