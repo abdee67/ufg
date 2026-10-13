@@ -163,7 +163,6 @@ as $$
         'status', la.status,
         'submitted_at', la.submitted_at,
         'created_at', la.created_at,
-        'reviewed_at', la.reviewed_at,
         'approved_at', la.approved_at,
         'eligibility_evaluated_at', la.eligibility_evaluated_at,
         'eligibility_snapshot', la.eligibility_snapshot,

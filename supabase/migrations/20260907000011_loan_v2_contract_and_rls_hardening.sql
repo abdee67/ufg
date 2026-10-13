@@ -111,7 +111,6 @@ as $$
         'eligibility_snapshot', la.eligibility_snapshot,
         'status', la.status,
         'submitted_at', la.submitted_at,
-        'reviewed_at', la.reviewed_at,
         'approved_at', la.approved_at,
         'created_at', la.created_at,
         'product', jsonb_build_object(
@@ -197,7 +196,6 @@ begin
     'eligibility_status', la.eligibility_status,
     'eligibility_snapshot', la.eligibility_snapshot,
     'submitted_at', la.submitted_at,
-    'reviewed_at', la.reviewed_at,
     'approved_at', la.approved_at,
     'created_at', la.created_at,
     'product', jsonb_build_object(

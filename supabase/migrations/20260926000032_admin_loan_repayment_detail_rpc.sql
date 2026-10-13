@@ -5,7 +5,7 @@ begin;
   role. Admin pages must therefore use a permission-checked RPC rather than a
   direct PostgREST table query; otherwise a real row is presented as a 404.
 */
-create or replace function publbic.get_admin_loan_repayment_detail_v3(
+create or replace function public.get_admin_loan_repayment_detail_v3(
   p_submission_id uuid
 )
 returns jsonb
