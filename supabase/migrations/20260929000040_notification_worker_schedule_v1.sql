@@ -47,6 +47,27 @@ Notes:
 begin;
 
 -- ============================================================================
+-- Ensure extensions exist
+-- ============================================================================
+create extension if not exists pg_net;
+create extension if not exists pg_cron;
+
+do $$
+begin
+  if to_regnamespace('vault') is null then
+    begin
+      execute 'create extension if not exists supabase_vault with schema vault';
+    exception when others then
+      begin
+        execute 'create extension if not exists supabase_vault';
+      exception when others then
+        null;
+      end;
+    end;
+  end if;
+end $$;
+
+-- ============================================================================
 -- 0. Dependency guards
 -- ============================================================================
 
